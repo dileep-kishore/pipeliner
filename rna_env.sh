@@ -1,24 +1,32 @@
+# @Author: Dileep Kishore <dileep>
+# @Date:   December 7, 2016 9:24:25 AM
+# @Filename: rna_env.sh
+# @Last modified by:   dileep
+# @Last modified time: December 7, 2016 10:30:23 AM
+
 #!/bin/bash
 
 #If using a module system such as SCC: module load a preinstalled version of anaconda
-module load anaconda2/4.2.0
+# module load anaconda2/4.2.0
 
 #General way to create a conda environment
 #Create virtual environment
-conda create -n rna_env python=2.7 anaconda --yes
+conda create -n rna_env python=3 anaconda --yes
 
 #Activate virtual environment
-source active rna_env
+source activate rna_env
+
+# Add the bioconda channel
+conda config --add channels conda-forge
+conda config --add channels defaults
+conda config --add channels r
+conda config --add channels bioconda
 
 #Install additional python packages
 conda install --name rna_env [package]
 
 #Install non-conda packages
 pip install [package]
-
-#Install packages from Anaconda.org i.e. Install package from a channel
-conda install -c [channel] [package]
-
 
 #Deactivate virtual environment
 deactivate rna_env
