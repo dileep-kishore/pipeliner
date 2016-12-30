@@ -1,0 +1,9 @@
+Random file {{name}}
+{{subtitle}}
+
+Looping
+{% for i in my_list %}
+	{% if i != 'second' %}
+		{{i}}
+	{% endif %}
+{% endfor %}
