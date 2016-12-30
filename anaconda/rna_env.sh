@@ -4,7 +4,7 @@
 # @Date:   December 7, 2016 9:24:25 AM
 # @Filename: rna_env.sh
 # @Last modified by:   dileep
-# @Last modified time: December 29, 2016 8:21:13 PM
+# @Last modified time: December 30, 2016 12:07:27 AM
 
 
 #If using a module system such as SCC: module load a preinstalled version of anaconda
@@ -19,8 +19,6 @@ conda create -n rna_env python=3 anaconda --yes
 #Activate virtual environment
 source activate rna_env
 
-exit
-
 # Add the bioconda channel
 conda config --add channels conda-forge
 conda config --add channels defaults
@@ -28,11 +26,9 @@ conda config --add channels r
 conda config --add channels bioconda
 
 # Install additional python packages
-conda install -n rna_env fastqc --yes
-conda install -n rna_env trim-galore --yes
-conda install -n rna_env star --yes
-conda install -n rna_env stringtie --yes
-conda install -n rna_env multiqc --yes
+conda install -n rna_env fastqc trim-galore star stringtie multiqc --yes
+## install nextflow as well (might not be the lastest version)
+conda install -n rna_env nextflow --yes
 
 ## Install non-conda packages
 # pip install [package]
