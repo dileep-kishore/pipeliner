@@ -1,0 +1,36 @@
+process trim_galore {
+
+  /*  executor = 'sge'
+*	clusterOptions = "-P ${PROJECT} -l h_rt=24:00:00 -l mem_total=5G"
+*	cpus 3
+ *   memory { 3.GB * task.attempt }
+  *  time { 16.h * task.attempt }
+   * errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+    *maxRetries 3
+   * maxErrors '-1'
+*/
+    publishDir "${params.outdir}/trim_galore", mode: 'copy'
+
+    input:
+    file(reads:'*') from read_files_trimming
+
+    output:
+    file '*fq.gz' into trimmed_reads
+    file '*trimming_report.txt' into trimgalore_results
+
+    script:
+    single = reads instanceof Path
+    if(single) {
+	  """
+	module load python2.7/Python-2.7.3_gnu446
+	module load cutadapt/1.7.1_Python-2.7.3
+     /restricted/projectnb/pulmseq/kkarri_netflow_test/trim_galore --gzip $reads
+        """
+    } else {
+        """
+	/* module load python2.7/Python-2.7.3_gnu446*/
+	/* module load cutadapt/1.7.1_Python-2.7.3*/
+     /restricted/projectnb/pulmseq/kkarri_netflow_test/trim_galore --paired --gzip $reads
+        """
+    }
+}

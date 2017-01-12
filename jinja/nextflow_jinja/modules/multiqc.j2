@@ -1,0 +1,23 @@
+process multiqc {
+
+    publishDir "${params.outdir}/MultiQC", mode: 'copy'
+
+
+    input:
+    file ('fastqc/*') from fastqc_results.toList()
+    file ('trimgalore/*') from trimgalore_results.toList()
+	file ('star/*') from star_logs.toList() 
+    file ('stringtie/*') from stringtie_log.toList() 
+
+    output:
+    file '*multiqc_report.html'
+    file '*multiqc_data'
+
+    script:
+    """
+	module load python/2.7.11
+	module load multiqc/0.8
+    multiqc -f /restricted/projectnb/pulmseq/kkarri_netflow_test/results_new/fastqc/*.zip /restricted/projectnb/pulmseq/kkarri_netflow_test/results_new/trim_galore/ /restricted/projectnb/pulmseq/kkarri_netflow_test/results_new/stringtieFPKM/ /restricted/projectnb/pulmseq/kkarri_netflow_test/results_new/STAR/
+
+    """
+}

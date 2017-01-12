@@ -1,0 +1,19 @@
+process buildIndex
+{
+   publishDir "${params.outdir}/STAR", mode: 'copy'
+    input:
+    file params.genome
+    file gtf
+    output:
+    file "STARgenome" into STARgenomeIndex
+    """
+    module load star/2.4.2a
+    mkdir STARgenome
+    STAR --runThreadN ${task.cpus} \
+         --runMode genomeGenerate \
+         --genomeDir STARgenome \
+         --genomeFastaFiles ${params.genome} \
+         --sjdbGTFfile ${gtf} \
+         --sjdbOverhang 100 \
+    """
+}

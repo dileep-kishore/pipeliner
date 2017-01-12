@@ -3,7 +3,7 @@
 # @Date:   December 7, 2016 9:05:15 AM
 # @Filename: renderer.py
 # @Last modified by:   dileep
-# @Last modified time: December 7, 2016 10:26:56 AM
+# @Last modified time: January 11, 2017 6:33:31 PM
 
 import jinja2
 import os
@@ -27,6 +27,9 @@ def get_header(record_dict):
     rendered_file += '\n\n'
     return rendered_file
 
+def get_channels(rendered_file, record_dict):
+    rendered_file += render_module('channels', module_params)
+
 def get_modules_needed(rendered_file, record_dict, tools):
     module_list = os.listdir('modules')
     module_list = [mod.split('.')[0] for mod in module_list]
@@ -34,6 +37,7 @@ def get_modules_needed(rendered_file, record_dict, tools):
     for tool in tools:
         for module in modules_needed[tool]:
             if module in module_list:
+                print(modules_needed[tool][0])
                 rendered_file += render_module(module, record_dict[module])
                 rendered_file += '\n\n'
             else:
@@ -44,6 +48,7 @@ def get_modules_needed(rendered_file, record_dict, tools):
 def main(yaml_file, tools):
     records = yaml_parser(yaml_file)
     rendered_file = get_header(records)
+    rendered_file = get_channels(rendered_file, records)
     rendered_file = get_modules_needed(rendered_file, records, tools)
     output_file = 'pipeline.nf'
     with open(output_file, 'w') as fid:
@@ -52,5 +57,5 @@ def main(yaml_file, tools):
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Usage: renderer.py <param.yml>")
-    tools = ['indexing', 'aligning', 'quantification']
+    tools = ['quality', 'trimming', 'indexing', 'aligning', 'quantification', 'report']
     main(sys.argv[1], tools)

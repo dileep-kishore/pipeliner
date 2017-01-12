@@ -44,7 +44,7 @@ Channel
     .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
     .set { read_files }
 
-read_files.into { read_files_fastqc; read_files_trimming; name_for_star }
+read_files.into {read_files_fastqc; read_files_trimming}
 
 
 /*
@@ -174,9 +174,9 @@ process star {
     script:
     """
 	module load star/2.4.2a
-	
+
 	f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed};f=\${f%_1};f=\${f%_R1}
-	prefix=\$f	
+	prefix=\$f
 	STAR --genomeDir $index \\
         --sjdbGTFfile $gtf \\
         --readFilesIn $reads  \\
@@ -206,6 +206,7 @@ def check_log(logs) {
         true
     }
 }
+
 // Filter removes all 'aligned' channels that fail the check
 aligned
     .filter { logs, bams -> check_log(logs) }
@@ -254,8 +255,6 @@ bam_count.count().subscribe{ num_bams = it }
 
 
 process multiqc {
-    
-
 
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
@@ -285,7 +284,3 @@ process multiqc {
 workflow.onComplete {
         println ( workflow.success ? "CONGRATULATIONS !!!!! Your pipeline executed successfully :) !!" : "Oops .. something went wrong" )
 }
-
-
-
-

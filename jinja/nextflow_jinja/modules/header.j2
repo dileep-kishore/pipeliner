@@ -1,13 +1,17 @@
 #!/usr/bin/env nextflow
+
 /*
-vim: syntax=groovy
--*- mode: groovy;-*-
-RNA-Seq Analysis Pipeline
+ vim: syntax=groovy
+ -*- mode: groovy;-*-
+ RNA-Seq Analysis Pipeline
 */
 
 params.reads = "$baseDir{{ reads }}"
 params.annot = "$baseDir{{ annotation }}"
 params.genome = "$baseDir{{ genome }}"
+{% if index is defined %}
+	params.index = "{{ index }}"
+{% endif %}
 params.outdir = "{{ output_dir }}"
 
 log.info "R N A T O Y   P I P E L I N E    "
@@ -22,15 +26,6 @@ log.info "outdir             : ${params.outdir}"
  */
 genome_file = file(params.genome)
 annotation_file = file(params.annot)
-
-/*
- * Create the `read_pairs` channel that emits tuples containing three elements:
- * the pair ID, the first read-pair file and the second read-pair file
- */
-Channel
-    .fromFilePairs( params.reads )
-    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
-    .set { read_pairs }
 
 workflow.onComplete {
 	println ( workflow.success ? "Done!" : "Oops .. something went wrong" )

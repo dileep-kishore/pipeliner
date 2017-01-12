@@ -1,0 +1,53 @@
+# @Author: Dileep Kishore <dileep>
+# @Date:   December 7, 2016 9:16:23 AM
+# @Filename: parameters.yml
+# @Last modified by:   dileep
+# @Last modified time: January 11, 2017 6:34:10 PM
+
+Modules:
+    quality:
+        - "fastqc"
+    trimming:
+        - "trim_galore"
+    indexing:
+        - "star_index"
+    aligning:
+        - "star_align"
+    quantification:
+        - "stringtie"
+    report:
+        - "multiqc"
+
+header:
+    genome: "/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
+    annotation: "/data/ggal/ggal_1_48850000_49020000.bed.gff"
+    reads: "/data/ggal/*_{1,2}.fq"
+    output_dir: "results"
+
+channels:
+    file_channel: ""
+
+fastqc:
+    params: "pass"
+
+trim_galore:
+    params: "pass"
+
+star_index:
+    params: "pass"
+
+star_align:
+    params: "pass"
+
+stringtie:
+    params: "pass"
+
+multiqc:
+    params: "pass"
+
+cluster_parameters:
+    project: "project_name"
+    memory: "4g"
+    runtime: "96:00:00"
+    num_processors: "4-8"
+    wait_time: "10"
