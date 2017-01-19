@@ -9,15 +9,19 @@
 params.reads = "$baseDir{{ reads }}"
 params.annot = "$baseDir{{ annotation }}"
 params.genome = "$baseDir{{ genome }}"
+params.index_exists = false
 {% if index is defined %}
+    params.index_exists = true
 	params.index = "{{ index }}"
+    index_file = file(params.index)
 {% endif %}
+params.paired = {{ paired_end }}
 params.outdir = "{{ output_dir }}"
 
-log.info "R N A T O Y   P I P E L I N E    "
+log.info "Nextflow-Jinja pipeline"
 log.info "================================="
 log.info "genome             : ${params.genome}"
-log.info "annotat            : ${params.annot}"
+log.info "annotatation       : ${params.annot}"
 log.info "reads              : ${params.reads}"
 log.info "outdir             : ${params.outdir}"
 
@@ -26,6 +30,21 @@ log.info "outdir             : ${params.outdir}"
  */
 genome_file = file(params.genome)
 annotation_file = file(params.annot)
+
+/*
+ * Create a channel for input read files
+ */
+Channel
+    if(paired){
+        .fromFilePairs( params.reads )
+    }
+    else{
+        .fromPath( params.reads )
+    }
+    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+    .set { read_files }
+
+read_files.into {read_files_quality; read_files_trimming}
 
 workflow.onComplete {
 	println ( workflow.success ? "Done!" : "Oops .. something went wrong" )

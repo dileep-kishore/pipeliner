@@ -4,7 +4,7 @@
 # @Date:   December 7, 2016 9:24:25 AM
 # @Filename: rna_env.sh
 # @Last modified by:   dileep
-# @Last modified time: December 30, 2016 12:07:27 AM
+# @Last modified time: January 18, 2017 10:17:40 AM
 
 
 #If using a module system such as SCC: module load a preinstalled version of anaconda
@@ -26,7 +26,7 @@ conda config --add channels r
 conda config --add channels bioconda
 
 # Install additional python packages
-conda install -n rna_env fastqc trim-galore star stringtie multiqc --yes
+conda install -n rna_env fastqc cutadapt trim-galore star stringtie multiqc --yes
 ## install nextflow as well (might not be the lastest version)
 conda install -n rna_env nextflow --yes
 

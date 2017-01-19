@@ -3,7 +3,7 @@
 # @Date:   December 7, 2016 9:05:15 AM
 # @Filename: renderer.py
 # @Last modified by:   dileep
-# @Last modified time: January 11, 2017 6:33:31 PM
+# @Last modified time: January 18, 2017 12:13:02 AM
 
 import jinja2
 import os
@@ -27,29 +27,24 @@ def get_header(record_dict):
     rendered_file += '\n\n'
     return rendered_file
 
-def get_channels(rendered_file, record_dict):
-    rendered_file += render_module('channels', module_params)
-
-def get_modules_needed(rendered_file, record_dict, tools):
+def get_modules_needed(rendered_file, record_dict):
     module_list = os.listdir('modules')
     module_list = [mod.split('.')[0] for mod in module_list]
     modules_needed = record_dict['Modules']
-    for tool in tools:
-        for module in modules_needed[tool]:
-            if module in module_list:
-                print(modules_needed[tool][0])
-                rendered_file += render_module(module, record_dict[module])
-                rendered_file += '\n\n'
-            else:
-                print("Requested module {0} not available".format(module))
-                sys.exit("Error")
+    for module in modules_needed:
+        if module in module_list:
+            print(modules_needed[0])
+            rendered_file += render_module(module, record_dict[module])
+            rendered_file += '\n\n'
+        else:
+            print("Requested module {0} not available".format(module))
+            sys.exit("Error")
     return rendered_file
 
-def main(yaml_file, tools):
+def main(yaml_file):
     records = yaml_parser(yaml_file)
     rendered_file = get_header(records)
-    rendered_file = get_channels(rendered_file, records)
-    rendered_file = get_modules_needed(rendered_file, records, tools)
+    rendered_file = get_modules_needed(rendered_file, records)
     output_file = 'pipeline.nf'
     with open(output_file, 'w') as fid:
         fid.write(rendered_file)
@@ -57,5 +52,5 @@ def main(yaml_file, tools):
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Usage: renderer.py <param.yml>")
-    tools = ['quality', 'trimming', 'indexing', 'aligning', 'quantification', 'report']
-    main(sys.argv[1], tools)
+    # tools = ['quality', 'trimming', 'indexing', 'aligning', 'quantification', 'report']
+    main(sys.argv[1])
