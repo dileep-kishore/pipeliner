@@ -1,0 +1,16 @@
+/*
+ * Step 1. Builds the genome index required by the mapping process
+ */
+process buildIndex {
+    tag "$genome_file.baseName"
+
+    input:
+    file genome_file
+
+    output:
+    file 'genome.index*' into genome_index
+
+    """
+    bowtie2-build --threads ${task.cpus} ${genome_file} genome.index
+    """
+}

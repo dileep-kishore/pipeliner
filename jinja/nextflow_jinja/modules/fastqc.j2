@@ -1,0 +1,47 @@
+if (params.paired)
+{
+    process fastqc {
+    /* executor = 'sge'
+       * clusterOptions = "-P ${PROJECT} -l h_rt=24:00:00 -l mem_total=5G"
+       * memory { 2.GB * task.attempt }
+       * time { 4.h * task.attempt }
+       * errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
+       * maxRetries 3
+       * maxErrors '-1'
+    */
+        tag "$name"
+        publishDir "${params.outdir}/fastqc"
+        input:
+        set val(name), file(reads) from read_files_quality
+        output:
+        file '*_fastqc.{zip,html}' into fastqc_results
+        script:
+        """
+        fastqc -q $reads
+        """
+    }
+}
+
+if (!params.paired)
+{
+    process fastqc {
+    /* executor = 'sge'
+       * clusterOptions = "-P ${PROJECT} -l h_rt=24:00:00 -l mem_total=5G"
+       * memory { 2.GB * task.attempt }
+       * time { 4.h * task.attempt }
+       * errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
+       * maxRetries 3
+       * maxErrors '-1'
+    */
+        tag "$reads"
+        publishDir "${params.outdir}/fastqc"
+        input:
+        file reads from read_files_quality
+        output:
+        file '*_fastqc.{zip,html}' into fastqc_results
+        script:
+        """
+        fastqc -q $reads
+        """
+    }
+}

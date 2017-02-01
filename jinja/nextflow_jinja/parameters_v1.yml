@@ -1,0 +1,48 @@
+# @Author: Dileep Kishore <dileep>
+# @Date:   December 7, 2016 9:16:23 AM
+# @Filename: parameters_v1.yml
+# @Last modified by:   dileep
+# @Last modified time: January 18, 2017 7:29:43 PM
+
+# TODO: Get metadata for each module that gives information about what is it's input and output.
+Modules:
+    - "fastqc"
+    - "trim_galore"
+    - "star_index"
+    - "star_align"
+    - "stringtie"
+    - "multiqc"
+
+header:
+    genome: "/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
+    annotation: "/data/ggal/ggal_1_48850000_49020000.bed.gff"
+    reads: "/data/ggal/ggal_*_{1,2}.fq"
+    output_dir: "results"
+    # New definition
+    index_exists : "false"
+    paired_end : "true"
+
+fastqc:
+    params: "pass"
+
+trim_galore:
+    params: "pass"
+
+star_index:
+    params: "pass"
+
+star_align:
+    params: "pass"
+
+stringtie:
+    params: "pass"
+
+multiqc:
+    params: "pass"
+
+cluster_parameters:
+    project: "project_name"
+    memory: "4g"
+    runtime: "96:00:00"
+    num_processors: "4-8"
+    wait_time: "10"

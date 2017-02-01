@@ -1,0 +1,51 @@
+#!/usr/bin/env nextflow
+
+/*
+ vim: syntax=groovy
+ -*- mode: groovy;-*-
+ RNA-Seq Analysis Pipeline
+*/
+
+params.reads = "$baseDir{{ reads }}"
+params.annot = "$baseDir{{ annotation }}"
+params.genome = "$baseDir{{ genome }}"
+params.index_exists = false
+{% if index is defined %}
+    params.index_exists = true
+	params.index = "{{ index }}"
+    index_file = file(params.index)
+{% endif %}
+params.paired = {{ paired_end }}
+params.outdir = "{{ output_dir }}"
+
+log.info "Nextflow-Jinja pipeline"
+log.info "================================="
+log.info "genome             : ${params.genome}"
+log.info "annotatation       : ${params.annot}"
+log.info "reads              : ${params.reads}"
+log.info "outdir             : ${params.outdir}"
+
+/*
+ * the reference genome file
+ */
+genome_file = file(params.genome)
+annotation_file = file(params.annot)
+
+/*
+ * Create a channel for input read files
+ */
+Channel
+    if(paired){
+        .fromFilePairs( params.reads )
+    }
+    else{
+        .fromPath( params.reads )
+    }
+    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+    .set { read_files }
+
+read_files.into {read_files_quality; read_files_trimming}
+
+workflow.onComplete {
+	println ( workflow.success ? "Done!" : "Oops .. something went wrong" )
+}

@@ -1,0 +1,40 @@
+if (trim)
+    trim_results into align_input
+else
+    fastqc_results into align_input
+
+process star {
+	tag "$reads"
+	/*  executor = 'sge'
+	  * clusterOptions = "-P ${PROJECT} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+	  * cpus 10
+	  * memory '80GB'
+	  * time  { 5.h * task.attempt }
+	  * errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+	  * maxRetries 3
+	  * maxErrors '-1'
+	*/
+    publishDir "${params.outdir}/STAR"
+    input:
+    file index_file
+    file annotation_file
+    file align_input
+    output:
+    set file('*Log.final.out'), file ('*.bam') into aligned
+    file '*.out' into star_logs
+    file '*SJ.out.tab'
+    script:
+    """
+	f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed};f=\${f%_1};f=\${f%_R1}
+	prefix=\$f
+	STAR --genomeDir $index \\
+        --sjdbGTFfile $gtf \\
+        --readFilesIn $reads  \\
+        --runThreadN ${task.cpus} \\
+        --twopassMode Basic \\
+        --outWigType bedGraph \\
+        --outSAMtype BAM SortedByCoordinate \\
+        --readFilesCommand zcat \\
+        --outFileNamePrefix \$prefix
+ """
+}

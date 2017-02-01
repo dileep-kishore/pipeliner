@@ -1,0 +1,20 @@
+task.cpus = 1
+
+process buildIndex
+{
+   publishDir "${params.outdir}/STAR"
+    input:
+    file genome_file
+    file annotation_file
+    output:
+    file "STARgenome" into index_file
+    """
+    mkdir STARgenome
+    STAR --runThreadN ${task.cpus} \
+         --runMode genomeGenerate \
+         --genomeDir STARgenome \
+         --genomeFastaFiles $genome_file \
+         --sjdbGTFfile $annotation_file \
+         --sjdbOverhang 100 \
+    """
+}
