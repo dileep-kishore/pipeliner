@@ -1,0 +1,10 @@
+# @Author: Dileep Kishore
+# @Date:   January 25, 2017 3:11:33 AM
+# @Last modified by:   dileep
+# @Last modified time: January 25, 2017 10:46:52 AM
+
+input:
+    - read_files
+    - trimmed_files
+output:
+    - read_quality

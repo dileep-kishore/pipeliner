@@ -1,0 +1,14 @@
+# @Author: Dileep Kishore <dileep>
+# @Date:   January 25, 2017 11:29:15 AM
+# @Filename: star_align.yml
+# @Last modified by:   dileep
+# @Last modified time: January 25, 2017 1:52:04 PM
+
+input:
+    - index
+    - trimmed_files
+    - read_files
+    - annotation
+
+output:
+    - bam_alignment

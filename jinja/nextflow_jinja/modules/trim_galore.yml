@@ -1,0 +1,11 @@
+# @Author: Dileep Kishore <dileep>
+# @Date:   January 25, 2017 11:19:47 AM
+# @Filename: trim_galore.yml
+# @Last modified by:   dileep
+# @Last modified time: January 25, 2017 11:20:50 AM
+
+input:
+    - read_files
+
+output:
+    - trimmed_files

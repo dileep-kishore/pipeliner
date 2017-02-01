@@ -4,7 +4,7 @@
 # @Date:   December 7, 2016 9:24:25 AM
 # @Filename: rna_env.sh
 # @Last modified by:   dileep
-# @Last modified time: January 18, 2017 10:17:40 AM
+# @Last modified time: January 25, 2017 1:47:33 AM
 
 
 #If using a module system such as SCC: module load a preinstalled version of anaconda
@@ -14,6 +14,7 @@
 # Prepending the path just in case
 export PATH=$HOME/anaconda3/bin:$PATH
 #Create virtual environment
+#FIXME: Python2 vs. Python3
 conda create -n rna_env python=3 anaconda --yes
 
 #Activate virtual environment
