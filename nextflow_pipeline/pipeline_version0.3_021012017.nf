@@ -441,7 +441,47 @@ process stringtieFPKM {
 def num_bams
 bam_count.count().subscribe{ num_bams = it }
 
+process Kallisto_index {
+    
+	publishDir "${params.outdir}/kallisto", mode: 'copy'
 
+        executor = 'sge'
+        clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+
+
+    input:
+    file Gallus_gallus.Galgal4.cdna.all.fa.gz  
+
+    output:
+    file transcripts.idx
+
+    script:
+    """
+    #conda install -c bioconda kallisto=0.43.0 : to install in an environment
+    
+    kallisto index -i transcripts.idx Gallus_gallus.Galgal4.cdna.all.fa.gz
+    """
+}
+
+process Kallisto_Quantification {
+	executor = 'sge'
+        clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12" 
+
+
+    input:
+    file transcripts.idx from kallisto
+    file (reads:'*') from trimmed_reads
+    
+    output:
+    file abundance.h5 into kallisto
+    file abundance.tsv into kallisto
+    file run_info.json into kallisto
+
+    script:
+    """
+    kallisto quant -i {$params.outdir}/kallisto/ -o output {$reads} 
+    """
+}
 
 /*
  * STEP 11 MultiQC
