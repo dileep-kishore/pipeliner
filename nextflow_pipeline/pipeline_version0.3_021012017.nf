@@ -274,7 +274,7 @@ aligned
     .filter { logs, bams -> check_log(logs) }
     .flatMap {  logs, bams -> bams }
     .set { SPLIT_BAMS }
-SPLIT_BAMS.into { bam_count; bam_rseqc; bam_preseq; bam_markduplicates; bam_featurecounts; bam_stringtieFPKM }
+SPLIT_BAMS.into { bam_count; bam_rseqc_bamstats; bam_rseqc_genecoverage; bam_rseqc_junc_annot; bam_preseq; bam_markduplicates; bam_featurecounts; bam_stringtieFPKM }
 
 
 }
@@ -336,6 +336,75 @@ process mapping {
 
 }
 
+process bam_stats{
+    tag "$bam_rseqc_bamstats"
+
+	executor = 'sge'
+        clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+
+    publishDir "${params.outdir}/bam_stats", mode: 'copy'
+
+    input:
+    file bam_rseqc_bamstats
+
+    output:
+    file '*.txt' into bam_stats_results
+
+    script:
+    """
+    module load python
+    module load rseqc/2.6.4
+    bam_stat.py -i $bam_rseqc_bamstats > bam_stats_info.txt
+    """
+}
+
+process gene_body_coverage{
+    tag "$bam_rseqc_genecoverage"
+
+	executor = 'sge'
+        clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+
+    publishDir "${params.outdir}/gene_coverage", mode: 'copy'
+
+    input:
+    file bam_rseqc_genecoverage
+    file gtf from gtf
+
+    output:
+    file 'gene_coverage*' into gene_coverage_results
+    stdout into gene_coverage_log
+
+    script:
+    """
+    module load python
+    module load rseqc/2.6.4
+    geneBody_coverage.py -r $gtf -i $bam_rseqc_genecoverage -o gene_coverage
+    """
+}
+
+process junction_annotation{
+    tag "$bam_rseqc_junc_annot"
+
+	executor = 'sge'
+        clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+
+    publishDir "${params.outdir}/junction_annotation", mode: 'copy'
+
+    input:
+    file bam_rseqc_junc_annot
+    file gtf from gtf
+
+    output:
+    file 'junc_annot*' into junction_annotation_results
+    stdout into gene_coverage_log
+
+    script:
+    """
+    module load python
+    module load rseqc/2.6.4
+    junction_annotation.py -i $bam_rseqc_junc_annot -o junc_annot -r $gtf
+    """
+}
 
 
 process stringtieFPKM {
@@ -343,8 +412,6 @@ process stringtieFPKM {
 
 	executor = 'sge'
         clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
-
-
 
     publishDir "${params.outdir}/stringtieFPKM", mode: 'copy'
 
@@ -391,6 +458,9 @@ process multiqc {
     file ('trimgalore/*') from trimgalore_results.flatten().toList()
     file ('alignment/*') from alignment_logs.flatten().toList()
     file ('stringtie/*') from stringtie_log.flatten().toList()
+    file ('bam_stats/*') from bam_stats_results.flatten().toList()
+    file ('gene_coverage/*') from gene_coverage_results.flatten().toList()
+    file ('junction_annotation/*') from junction_annotation_results.flatten().toList()
     
 
     output:
@@ -402,7 +472,7 @@ process multiqc {
 	 module load python/2.7.11
         module load multiqc/0.8
 	
-   multiqc -f ${params.outdir}/fastqc/ ${params.outdir}/STAR/ ${params.outdir}/trim_galore/ ${params.outdir}/stringtieFPKM/
+   multiqc -f ${params.outdir}/fastqc/ ${params.outdir}/STAR/ ${params.outdir}/trim_galore/ ${params.outdir}/stringtieFPKM/ ${params.outdir}/bam_stats/ ${params.outdir}/gene_coverage/ ${params.outdir}/junction_annotation/
     """
 }
 
@@ -426,7 +496,3 @@ workflow.onComplete {
     Error report: ${workflow.errorReport ?: '-'}
     """
 }
-
-
-
-
