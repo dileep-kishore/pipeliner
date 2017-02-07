@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+#$ -cwd
+#$ -j y
+#$ -P pulmseq
+#$ -m be
+#$ -M kkarri@bu.edu
+#$ -o Human_pipeline_batch_run2.log
+#$ -N Run_human
+
+
+# For running Human RNA seq  test samples using nextflow pipeline
+
+# Edit Notes:
+
+# Load modules
+
+echo "=========================================================="
+echo "Starting on       : $(date)"
+echo "Running on node   : $(hostname)"
+echo "Current job ID    : $JOB_ID"
+echo "Current job name  : $JOB_NAME"
+echo "Task index number : $TASK_ID"
+echo "=========================================================="
+
+echo "Running nextflow"
+nextflow < /restricted/projectnb/pulmseq/kkarri_netflow_test/pipeline_version0.4_02012017.nf -c /restricted/projectnb/pulmseq/kkarri_netflow_test/config >&  Human_pipeline_batch_run1.log
+echo "Finished  .............. $(date)"
+
