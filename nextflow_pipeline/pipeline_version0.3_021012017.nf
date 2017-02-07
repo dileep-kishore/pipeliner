@@ -536,3 +536,4 @@ workflow.onComplete {
     Error report: ${workflow.errorReport ?: '-'}
     """
 }
+
