@@ -1,0 +1,48 @@
+/*
+vim: syntax=groovy
+-*- mode: groovy;-*-
+ * -------------------------------------------------
+ *   Nextflow config file
+ * -------------------------------------------------
+ * Defines reference genomes, using iGenome paths
+ * Should be saved either with Nextflow installation or
+ * as file ~/.nextflow/config
+ */
+
+
+params 
+{
+  genomes 
+    {
+    'ggal' 
+	{
+	
+	fasta = '/restricted/projectnb/pulmseq/kkarri_netflow_test/genome/genome.index.fa'
+	gtf   ='/restricted/projectnb/pulmseq/kkarri_netflow_test/genome/genome.bed.gff'
+	reads = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/ggal/*{_1,_2}.fq'
+	star = '/restricted/projectnb/pulmseq/kkarri_netflow_test/'
+	outdir = '/restricted/projectnb/pulmseq/kkarri_netflow_test/results_new_4'
+	project = 'pulmseq'
+	bowtie = '/restricted/projectnb/pulmseq/kkarri_netflow_test/'
+	aligner = 'star'
+	email = 'kritikakarri@gmail.com'
+	}
+	
+	'human'
+        {
+
+        fasta = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human/genome.fa'
+        gtf   ='/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human/genes.gtf'
+        reads = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human_data/*{1_10000,2_10000}.fastq.gz'
+        star = '/restricted/projectnb/pulmseq/kkarri_netflow_test/'
+        outdir = '/restricted/projectnb/pulmseq/kkarri_netflow_test/results_new_human_2'
+        project = 'pulmseq'
+        bowtie = '/restricted/projectnb/pulmseq/kkarri_netflow_test/'
+        aligner = 'star'
+        email = 'kritikakarri@gmail.com'
+        }
+
+
+
+    }
+}
