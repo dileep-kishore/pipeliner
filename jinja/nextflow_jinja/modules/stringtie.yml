@@ -1,0 +1,15 @@
+# @Author: Dileep Kishore <dileep>
+# @Date:   February 2, 2017 8:51:24 AM
+# @Last modified by:   dileep
+# @Last modified time: February 2, 2017 8:53:06 AM
+
+input:
+    default: [annotation, bam_files]
+    alternate: []
+
+output:
+    - transcripts
+    - abundance
+    - coverage
+    - logs
+    - multiqc

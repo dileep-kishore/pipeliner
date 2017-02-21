@@ -4,7 +4,7 @@
 # @Date:   December 7, 2016 9:24:25 AM
 # @Filename: rna_env.sh
 # @Last modified by:   dileep
-# @Last modified time: January 25, 2017 1:47:33 AM
+# @Last modified time: February 7, 2017 8:22:42 PM
 
 
 #If using a module system such as SCC: module load a preinstalled version of anaconda
@@ -15,7 +15,7 @@
 export PATH=$HOME/anaconda3/bin:$PATH
 #Create virtual environment
 #FIXME: Python2 vs. Python3
-conda create -n rna_env python=3 anaconda --yes
+conda create -n rna_env python=2 anaconda --yes
 
 #Activate virtual environment
 source activate rna_env
@@ -27,9 +27,9 @@ conda config --add channels r
 conda config --add channels bioconda
 
 # Install additional python packages
-conda install -n rna_env fastqc cutadapt trim-galore star stringtie multiqc --yes
-## install nextflow as well (might not be the lastest version)
-conda install -n rna_env nextflow --yes
+conda install -n rna_env fastqc cutadapt trim-galore star rseqc stringtie multiqc --yes
+# ## install nextflow as well (might not be the lastest version)
+# conda install -n rna_env nextflow --yes
 
 ## Install non-conda packages
 # pip install [package]
@@ -37,8 +37,8 @@ conda install -n rna_env nextflow --yes
 # Export environment to yaml files
 conda env export > rna_env.yml
 
-# Deactivate virtual environment
-deactivate rna_env
+# # Deactivate virtual environment
+# deactivate rna_env
 
 # #Following Montilab's example: Create an environment folder that stores all the files needed to run the pipeline
 # #channel represents bioconda channel we can create with specific packages needed

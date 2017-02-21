@@ -2,10 +2,12 @@
 # @Date:   January 25, 2017 11:19:47 AM
 # @Filename: trim_galore.yml
 # @Last modified by:   dileep
-# @Last modified time: January 25, 2017 11:20:50 AM
+# @Last modified time: February 2, 2017 9:32:52 AM
 
 input:
-    - read_files
+    default: [reads]
+    alternate: []
 
 output:
-    - trimmed_files
+    - trimmed_reads
+    - multiqc

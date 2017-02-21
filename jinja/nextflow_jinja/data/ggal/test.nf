@@ -36,6 +36,7 @@ if (!params.paired)
     }
 }
 
+
 if (params.paired)
 {
     process output_paired {
@@ -52,6 +53,8 @@ if (params.paired)
         """
     }
 }
+
+op_reads.into {test1, test2}
 
 process output_check {
     echo true

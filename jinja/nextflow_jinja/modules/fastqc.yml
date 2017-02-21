@@ -1,10 +1,12 @@
 # @Author: Dileep Kishore
 # @Date:   January 25, 2017 3:11:33 AM
 # @Last modified by:   dileep
-# @Last modified time: January 25, 2017 10:46:52 AM
+# @Last modified time: February 2, 2017 9:35:18 AM
 
 input:
-    - read_files
-    - trimmed_files
+    default: [reads]
+    alternate:
+        reads: trimmed_reads
 output:
-    - read_quality
+    - quality_fastqc
+    - multiqc

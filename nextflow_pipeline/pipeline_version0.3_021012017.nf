@@ -153,6 +153,7 @@ process buildIndex {
     file 'genome.index*' into bowtieindex
     file genome_file
 
+    // FIXME: ${genome_file}
     """
     module load bowtie2/2.2.9
 
@@ -237,9 +238,6 @@ process star {
 	executor = 'sge'
         clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
 
-
-
-
     publishDir "${params.outdir}/STAR", mode: 'copy'
 
     input:
@@ -254,8 +252,8 @@ process star {
 
     script:
     """
-	module load star/2.4.2a	
- 	
+	module load star/2.4.2a
+
 	f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed};f=\${f%_1};f=\${f%_R1}
 	prefix=\$f	
 	STAR --genomeDir $index \\
@@ -348,7 +346,7 @@ process bam_stats{
     file bam_rseqc_bamstats
 
     output:
-    file '*.txt' into bam_stats_results
+    file '*info.txt' into bam_stats_results
 
     script:
     """
@@ -368,12 +366,15 @@ process gene_body_coverage{
 
     input:
     file bam_rseqc_genecoverage
-    file gtf from gtf
+    file gtf from ref_gene_model
 
     output:
     file 'gene_coverage*' into gene_coverage_results
     stdout into gene_coverage_log
 
+    // gtf must be the reference gene model
+    // index file for bam must be available
+    
     script:
     """
     module load python
@@ -392,11 +393,10 @@ process junction_annotation{
 
     input:
     file bam_rseqc_junc_annot
-    file gtf from gtf
+    file gtf from ref_gene_model
 
     output:
     file 'junc_annot*' into junction_annotation_results
-    stdout into gene_coverage_log
 
     script:
     """

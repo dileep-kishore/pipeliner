@@ -1,0 +1,11 @@
+# @Author: Dileep Kishore <dileep>
+# @Date:   February 2, 2017 9:07:41 AM
+# @Last modified by:   dileep
+# @Last modified time: February 2, 2017 9:08:02 AM
+
+input:
+    default: [multiqc]
+    alternate: []
+
+output:
+    - html_report

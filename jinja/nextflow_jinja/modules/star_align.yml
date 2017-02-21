@@ -2,13 +2,14 @@
 # @Date:   January 25, 2017 11:29:15 AM
 # @Filename: star_align.yml
 # @Last modified by:   dileep
-# @Last modified time: January 25, 2017 1:52:04 PM
+# @Last modified time: February 2, 2017 9:32:19 AM
 
 input:
-    - index
-    - trimmed_files
-    - read_files
-    - annotation
+    default: [index, trimmed_reads, annotation]
+    alternate:
+        trimmed_reads: reads
 
 output:
-    - bam_alignment
+    - bam_files
+    - logs
+    - multiqc

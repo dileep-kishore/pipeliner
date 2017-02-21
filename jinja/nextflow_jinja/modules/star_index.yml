@@ -2,11 +2,12 @@
 # @Date:   January 25, 2017 11:27:55 AM
 # @Filename: star_index.yml
 # @Last modified by:   dileep
-# @Last modified time: January 25, 2017 11:28:25 AM
+# @Last modified time: February 2, 2017 9:31:38 AM
 
 input:
-    - trimmed_files
-    - read_files
+    default: [trimmed_reads, genome, annotation]
+    alternate:
+        trimmed_reads: reads
 
 output:
     - index
