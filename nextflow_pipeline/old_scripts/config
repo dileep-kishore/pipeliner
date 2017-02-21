@@ -1,0 +1,32 @@
+/*
+vim: syntax=groovy
+-*- mode: groovy;-*-
+ * -------------------------------------------------
+ *   Nextflow config file
+ * -------------------------------------------------
+ * Defines reference genomes, using iGenome paths
+ * Should be saved either with Nextflow installation or
+ * as file ~/.nextflow/config
+ */
+
+
+params 
+{
+  genomes 
+    {
+    'ggal' 
+	{
+	
+	fasta = '/restricted/projectnb/pulmseq/kkarri_netflow_test/genome/genome.index.fa'
+	gtf   ='/restricted/projectnb/pulmseq/kkarri_netflow_test/genome/genome.bed.gff'
+	reads = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/ggal/*{_1,_2}.fq'
+	transcriptome = '/restricted'/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/Gallus_gallus.Galgal4.cdna.all.fa.gz'
+	star = '/restricted/projectnb/pulmseq/kkarri_netflow_test/'
+	outdir = '/restricted/projectnb/pulmseq/kkarri_netflow_test/results_new1'
+	project = 'pulmseq'
+	bowtie = '/restricted/projectnb/pulmseq/kkarri_netflow_test/'
+	aligner = 'star'
+	email = 'kkarri@gmail.bu.edu'
+	}
+    }
+}
