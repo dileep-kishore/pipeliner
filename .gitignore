@@ -90,4 +90,4 @@ ENV/
 
 # Nextflow log stuff
 .nextflow*
-work/
+*work/
