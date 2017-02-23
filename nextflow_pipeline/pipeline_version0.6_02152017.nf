@@ -10,14 +10,14 @@ vim: syntax=groovy
 
 
 // Pipeline version
-version = 0.2
+version = 0.6
 
 // Configurable variables
 params.genome = 'ggal'
 params.fasta = params.genome ? params.genomes[params.genome].fasta ?: false : false
 params.gtf  = params.genome ? params.genomes[params.genome].gtf ?: false : false
 params.reads = params.genomes[params.genome].reads
- 
+params.sample_files = params.genomes[params.genome].sample_reads_file
 //params.reads = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/ggal/merge/ggal_*_{1,2}.fq'
 params.outdir = params.genomes[params.genome].outdir
 params.starindex= params.genome ? params.genomes[params.genome].star ?: false : false
@@ -27,8 +27,26 @@ params.aligner = params.genome ? params.genomes[params.genome].aligner ?: false 
 params.email = params.genome ? params.genomes[params.genome].email ?: false : false
 println("hello..........")
 println(params.reads)
-// Aligner options
 
+// Read and Map reads with samples using csv file
+def sample_ids = []
+def read_paths = []
+Channel
+    .fromPath(params.sample_files)
+    .splitCsv(header:true)
+    .subscribe { row ->
+        read_paths.add(new File(row.FastQ_files).absolutePath);
+        sample_ids.add(row.sample_name)
+    }
+def temp_list = []
+for(i=0;i<read_paths.size;i++) { temp_list.add([sample_ids[i],read_paths[i]]) }
+def sample_map = temp_list.groupBy { it[0] }
+                          .collectEntries { key, value ->
+                             new Tuple( key, value*.getAt(1) ) }
+def read_tuples = []
+for(i in sample_map) { read_tuples.add(new Tuple(i.key, i.value[0], i.value[1])) }
+
+// Aligner options
 if (params.aligner != 'star' && params.aligner != 'bowtie'){
     exit 1, "Invalid aligner option: ${params.aligner}. Valid options: 'star','bowtie'"
 }
@@ -36,22 +54,18 @@ if (params.aligner != 'star' && params.aligner != 'bowtie'){
 
 
 // Validate inputs
-
 if (params.starindex && params.aligner == 'star'){
     starindex = Channel
         .fromPath(params.starindex)
         .ifEmpty { exit 1, "STAR index not found: ${params.starindex}" }
         .toList()
 }
-
 else if (params.bowtieindex && params.aligner == 'bowtie' ){
     bowtieindex = Channel
         .fromPath(params.bowtieindex)
         .ifEmpty { exit 1, "Bowtie index not found: ${params.bowtieindex}" }
         .toList()
 }
-
-
 else if ( params.fasta ){
     fasta = file(params.fasta)
     if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.fasta}"
@@ -61,9 +75,7 @@ else if ( ( params.aligner == 'bowtie' && !params.bowtieindex ) && !params.fasta
 }
 
 fasta = file(params.fasta)
-
 gtf   = file(params.gtf)
-
 if (params.gtf){
     Channel
         .fromPath(params.gtf)
@@ -100,19 +112,22 @@ log.info "===================================="
 
  /* Create a channel for input read files*/
 
-Channel
-    .fromFilePairs( params.reads, size:-1 )
-    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
-     .set{read }
-    read.into {read_files_fastqc; read_files_trimming}
-	
+// Channel
+//     .fromFilePairs( params.reads, size:-1 )
+//     .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+//      .set{read }
+//     read.into {read_files_fastqc; read_files_trimming}
 
+Channel
+    .from(read_tuples)
+    .ifEmpty { error "File ${paras.sample_files} not parsed properly" }
+    .into { read_files_fastqc; read_files_trimming }
 
 /* PREPROCESSING - Build STAR index */
 
 if(params.aligner == 'star' && !params.starindex && fasta)
 {
-println("index does not exits")    	
+println("index does not exits")
 process makeSTARindex {
         tag fasta
         publishDir "~/restricted/projectnb/pulmseq/kkarri_netflow_test/reference_genome/",  mode: 'copy'
@@ -194,24 +209,24 @@ def logParams(p, n) {
  * STEP 1 - FastQC
  */
 process fastqc {
-
+     tag "$sampleid"
      executor = 'sge'
      clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
 
 
-    publishDir "${params.outdir}/fastqc", mode: 'copy'
+    publishDir "${params.outdir}/$sampleid/fastqc", mode: 'copy'
 
     input:
-	
-set val(name),file(reads) from read_files_fastqc
-   
-// file(reads:'*') from read_files_fastqc
+    // set val(name),file(reads) from read_files_fastqc
+    set sampleid, read1, read2 from read_files_fastqc
+    // file(reads:'*') from read_files_fastqc
 
     output:
-    file '*_fastqc.{zip,html}' into fastqc_results
-	
+    set sampleid, '*_fastqc.{zip,html}' into fastqc_results
+
+    script:
     """
-/restricted/projectnb/pulmseq/kkarri_netflow_test/FastQC/fastqc -q $reads
+    /restricted/projectnb/pulmseq/kkarri_netflow_test/FastQC/fastqc -q $read1 $read2
     """
 }
 
@@ -222,20 +237,20 @@ set val(name),file(reads) from read_files_fastqc
  * STEP 2 - Trim Galore!
  */
 process trim_galore {
-
-
+ tag "$sampleid"
  executor = 'sge'
  clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
 
-    publishDir "${params.outdir}/trim_galore", mode: 'copy'
+    publishDir "${params.outdir}/$sampleid/trim_galore", mode: 'copy'
 
     input:
-	set val(name),file(reads) from read_files_trimming
-//  file(reads:'*') from read_files_trimming
+	// set val(name),file(reads) from read_files_trimming
+    set sampleid, read1, read2 from read_files_trimming
+    //  file(reads:'*') from read_files_trimming
 
     output:
-    file '*fq.gz' into trimmed_reads
-    file '*trimming_report.txt' into trimgalore_results
+    set sampleid, '*fq.gz' into trimmed_reads
+    set sampleid, '*trimming_report.txt' into trimgalore_results
 
     script:
     single = reads instanceof Path
@@ -246,7 +261,7 @@ process trim_galore {
         module load python2.7/Python-2.7.3_gnu446
         module load cutadapt/1.7.1_Python-2.7.3
 
-     /restricted/projectnb/pulmseq/kkarri_netflow_test/trim_galore --paired --gzip $reads
+     /restricted/projectnb/pulmseq/kkarri_netflow_test/trim_galore --paired --gzip $read1 $read2
         """
     } else {
         println("singleend")
@@ -254,7 +269,7 @@ process trim_galore {
         /* module load python2.7/Python-2.7.3_gnu446*/
         /* module load cutadapt/1.7.1_Python-2.7.3*/
 
-     /restricted/projectnb/pulmseq/kkarri_netflow_test/trim_galore --gzip $reads
+     /restricted/projectnb/pulmseq/kkarri_netflow_test/trim_galore --gzip $read1 $read2
         """
     }
 }
@@ -263,24 +278,24 @@ process trim_galore {
 if(params.aligner == 'star'){
 
 process star {
-        tag "$reads"
+        tag "$sampleid"
         executor = 'sge'
         clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
 
 
 
 
-    publishDir "${params.outdir}/STAR", mode: 'copy'
+    publishDir "${params.outdir}/$sampleid/STAR", mode: 'copy'
 
     input:
     file index from starindex.first()
     file gtf from gtf_star.first()
-    file (reads:'*') from trimmed_reads
+    set sampleid, file (reads:'*') from trimmed_reads
 
     output:
-    set file('*Log.final.out'), file ('*.bam') into aligned
-    file '*.out' into alignment_logs
-    file '*SJ.out.tab'
+    set sampleid, file('*Log.final.out'), file ('*.bam') into aligned
+    set sampleid, '*.out' into alignment_logs
+    set sampleid, '*SJ.out.tab' into alignment_tab
 
     script:
     """
@@ -302,10 +317,11 @@ process star {
 
 
 
-
+// TODO: Find out whether the bam files need to be aggregated
 aligned
-    .filter { logs, bams -> check_log(logs) }
-    .flatMap {  logs, bams -> bams }
+    .filter { sampleid, logs, bams -> check_log(logs) }
+    .flatMap {  sampleid, logs, bams -> sampleid, bams }
+    .collate( 2 )
     .set { SPLIT_BAMS }
 SPLIT_BAMS.into { bam_count; bam_rseqc_bamstats; bam_rseqc_genecoverage; bam_rseqc_junc_annot; bam_preseq;  bam_stringtieFPKM }
 
@@ -337,23 +353,18 @@ def check_log(logs) {
 
 
 
-
-
-
-
-
 process stringtieFPKM {
-    tag "$bam_stringtieFPKM"
+    tag "$sampleid"
 
         executor = 'sge'
         clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
 
 
 
-    publishDir "${params.outdir}/stringtieFPKM", mode: 'copy'
+    publishDir "${params.outdir}/$sampleid/stringtieFPKM", mode: 'copy'
 
     input:
-    file bam_stringtieFPKM
+    set sampleid, bamfiles from bam_stringtieFPKM
     file gtf from gtf
 
     output:
@@ -364,7 +375,7 @@ process stringtieFPKM {
 
     script:
     """
-   /restricted/projectnb/pulmseq/kkarri_netflow_test/stringtie/stringtie $bam_stringtieFPKM \\
+   /restricted/projectnb/pulmseq/kkarri_netflow_test/stringtie/stringtie $bamfiles \\
         -o ${bam_stringtieFPKM}_transcripts.gtf \\
         -v \\
         -G $gtf \\
@@ -372,14 +383,89 @@ process stringtieFPKM {
         -C ${bam_stringtieFPKM}.cov_refs.gtf \\
         -e \\
         -b ${bam_stringtieFPKM}_ballgown
- echo "File name: $bam_stringtieFPKM Stringtie version "\$(stringtie --version)
+ echo "File name: $bamfiles Stringtie version "\$(stringtie --version)
     """
 }
 def num_bams
 bam_count.count().subscribe{ num_bams = it }
 
 
+// BamStats for the bam file
+process bam_stats{
+    tag "$sampleid"
 
+	executor = 'sge'
+        clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+
+    publishDir "${params.outdir}/$sampleid/bam_stats", mode: 'copy'
+
+    input:
+    set sampleid, bamfiles from bam_rseqc_bamstats
+
+    output:
+    file '*info.txt' into bam_stats_results
+
+    script:
+    """
+    module load python
+    module load rseqc/2.6.4
+    bam_stat.py -i $bamfiles > bam_stats_info.txt
+    """
+}
+
+// GeneBodyCoverage for the reference (house-keeping) genes
+process gene_body_coverage{
+    tag "$sampleid"
+
+	executor = 'sge'
+        clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+
+    publishDir "${params.outdir}/$sampleid/gene_coverage", mode: 'copy'
+
+    input:
+    set sampleid, bamfiles from bam_rseqc_genecoverage
+    file gtf from ref_gene_model
+
+    output:
+    file 'gene_coverage*' into gene_coverage_results
+    stdout into gene_coverage_log
+
+    // gtf must be the reference gene model
+    // index file for bam must be available
+
+    script:
+    """
+    module load python
+    module load rseqc/2.6.4
+    geneBody_coverage.py -r $gtf -i $bamfiles -o gene_coverage
+    """
+}
+
+process junction_annotation{
+    tag "$sampleid"
+
+	executor = 'sge'
+        clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+
+    publishDir "${params.outdir}/$sampleid/junction_annotation", mode: 'copy'
+
+    input:
+    set sampleid, bamfiles from bam_rseqc_junc_annot
+    file gtf from ref_gene_model
+
+    output:
+    file 'junc_annot*' into junction_annotation_results
+
+    // gtf must be the reference gene model
+    // index file for bam must be available
+
+    script:
+    """
+    module load python
+    module load rseqc/2.6.4
+    junction_annotation.py -i $bamfiles -o junc_annot -r $gtf
+    """
+}
 
 
 
@@ -399,28 +485,25 @@ process multiqc {
     file ('trimgalore/*') from trimgalore_results.flatten().toList()
     file ('alignment/*') from alignment_logs.flatten().toList()
     file ('stringtie/*') from stringtie_log.flatten().toList()
-    
+    file ('bam_stats/*') from bam_stats_results.flatten().toList()
+    file ('gene_coverage/*') from gene_coverage_results.flatten().toList()
+    file ('junction_annotation/*') from junction_annotation_results.flatten().toList()
 
     output:
     file "*multiqc_report.html"
     file "*multiqc_data"
 
+    // TODO: Multi-sample MultiQC (will it work if -f ${params.outdir})
     script:
     """
          module load python/2.7.11
         module load multiqc/0.8
 
-   multiqc -f ${params.outdir}/fastqc/ ${params.outdir}/STAR/ ${params.outdir}/trim_galore/ ${params.outdir}/stringtieFPKM/
- 
-
+   multiqc -f ${params.outdir}/fastqc/ ${params.outdir}/STAR/ ${params.outdir}/trim_galore/ ${params.outdir}/stringtieFPKM/ ${params.outdir}/bam_stats/ ${params.outdir}/gene_coverage/ ${params.outdir}/junction_annotation/
 	"""
 }
 
 
-
-
-
-	
 workflow.onComplete {
         println ( workflow.success ? "CONGRATULATIONS !!!!! Your pipeline executed successfully :) !!" : "Oops .. something went wrong" )
     	def subject = 'My pipeline execution'
@@ -438,7 +521,3 @@ workflow.onComplete {
     Error report: ${workflow.errorReport ?: '-'}
     """
 }
-
-
-
-
