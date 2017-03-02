@@ -18,33 +18,27 @@ params.fasta = params.genome ? params.genomes[params.genome].fasta ?: false : fa
 params.gtf  = params.genome ? params.genomes[params.genome].gtf ?: false : false
 params.reads = params.genomes[params.genome].reads
 params.sample_files = params.genomes[params.genome].sample_reads_file
-//params.reads = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/ggal/merge/ggal_*_{1,2}.fq'
 params.outdir = params.genomes[params.genome].outdir
 params.starindex= params.genome ? params.genomes[params.genome].star ?: false : false
 params.bowtieindex= params.genome ? params.genomes[params.genome].bowtie ?: false : false
 params.project = params.genome ? params.genomes[params.genome].project ?: false : false
 params.aligner = params.genome ? params.genomes[params.genome].aligner ?: false : false
 params.email = params.genome ? params.genomes[params.genome].email ?: false : false
-println("hello..........")
 println(params.reads)
 
 // Read and Map reads with samples using csv file
-def sample_ids = []
-def read_paths = []
+def read_tuples = []
 Channel
     .fromPath(params.sample_files)
     .splitCsv(header:true)
-    .subscribe { row ->
-        read_paths.add(new File(row.FastQ_files).absolutePath);
-        sample_ids.add(row.sample_name)
+    .subscribe {row ->
+        read_tuples.add(new Tuple(
+            row.Sample_Name,
+            new File(row.Read1).absolutePath,
+            new File(row.Read2).absolutePath
+            )
+        )
     }
-def temp_list = []
-for(i=0;i<read_paths.size;i++) { temp_list.add([sample_ids[i],read_paths[i]]) }
-def sample_map = temp_list.groupBy { it[0] }
-                          .collectEntries { key, value ->
-                             new Tuple( key, value*.getAt(1) ) }
-def read_tuples = []
-for(i in sample_map) { read_tuples.add(new Tuple(i.key, i.value[0], i.value[1])) }
 
 // Aligner options
 if (params.aligner != 'star' && params.aligner != 'bowtie'){
@@ -101,7 +95,7 @@ if(params.aligner == 'star'){
 } else if (params.aligner == 'bowtie') {
     log.info "Aligner        : Bowtie"
     if (params.bowtieindex)        log.info "Bowtie Index   : ${params.bowtieindex}"
- 
+
 }
 
 log.info "Current home   : $HOME"
@@ -120,7 +114,7 @@ log.info "===================================="
 
 Channel
     .from(read_tuples)
-    .ifEmpty { error "File ${paras.sample_files} not parsed properly" }
+    .ifEmpty { error "File ${params.sample_files} not parsed properly" }
     .into { read_files_fastqc; read_files_trimming }
 
 /* PREPROCESSING - Build STAR index */
@@ -139,11 +133,11 @@ process makeSTARindex {
 
         output:
         file "Stargenome" into starindex
-        
-	
+
+
         script:
         """
-		
+
         module load star/2.4.2a
 
         mkdir Stargenome
@@ -499,15 +493,15 @@ process multiqc {
          module load python/2.7.11
         module load multiqc/0.8
 
-   multiqc -f ${params.outdir}/fastqc/ ${params.outdir}/STAR/ ${params.outdir}/trim_galore/ ${params.outdir}/stringtieFPKM/ ${params.outdir}/bam_stats/ ${params.outdir}/gene_coverage/ ${params.outdir}/junction_annotation/
+   multiqc -f ${params.outdir}
 	"""
 }
 
 
 workflow.onComplete {
-        println ( workflow.success ? "CONGRATULATIONS !!!!! Your pipeline executed successfully :) !!" : "Oops .. something went wrong" )
-    	def subject = 'My pipeline execution'
-    	def recipient = (params.email)
+	println ( workflow.success ? "CONGRATULATIONS !!!!! Your pipeline executed successfully :) !!" : "Oops .. something went wrong" )
+	def subject = 'My pipeline execution'
+	def recipient = (params.email)
 
     ['mail', '-s', subject, recipient].execute() << """
 
