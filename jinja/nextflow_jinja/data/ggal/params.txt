@@ -1,5 +1,0 @@
-FastQ_files,sample_name
-ggal_liver_1.fq,liver
-ggal_liver_2.fq,liver
-ggal_gut_1.fq,gut
-ggal_gut_2.fq,gut

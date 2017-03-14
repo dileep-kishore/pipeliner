@@ -1,101 +1,75 @@
 #!/usr/bin/env nextflow
 // vim: syntax=groovy
 
-version = 0.1
+version = 0.2
 
-params.param_file = "params.txt"
-def samples = []
-def file_names = []
-Channel
-    .fromPath(params.param_file)
-    .splitCsv(header:true)
-    .subscribe {row -> file_names.add(new File(row.FastQ_files).absolutePath); samples.add(row.sample_name)}
+params.paired = false
+params.param_file = "single_params.csv"
+test_file = file("test.sh");
 
-def sample_files = []
-for(i=0;i<file_names.size;i++) {sample_files.add([samples[i],file_names[i]])}
-def sample_map = sample_files.groupBy {it[0]}
-                             .collectEntries { key, value ->
-                                 new Tuple( key, value*.getAt(1) ) }
-def file_pairs = []
-for(i in sample_map) {
-    file_pairs.add(new Tuple(i.key, i.value[0], i.value[1]))
-    // file_pairs.add(new Tuple(i.key, i.value))
-}
-// sample_map.each{ key, values -> file_pairs.add(new Tuple(key, values)) }
-
-// file_pairs.each { elem -> println(elem[1].absolutePath) }
-
-Channel
-    .from(file_pairs)
-    // .subscribe{ println(it) }
-    .flatMap { a,b,c -> [a, c]}
-    .collate( 2 )
-    .subscribe { println(it) }
-    .into {foo; bar}
-
-params.paired = true
+def file_tuple = []
 if (params.paired) {
-    params.read_files = "ggal_*_{1,2}.fq"
     Channel
-        .fromFilePairs(params.read_files)
-        // .subscribe { println(it)}
-        .set{rna_reads}
-    }
+        .fromPath(params.param_file)
+        .splitCsv(header:true)
+        .subscribe {row ->
+            file_tuple.add(new Tuple(
+                row.Sample_Name,
+                new Tuple(
+                    new File(row.Read1).absolutePath,
+                    new File(row.Read2).absolutePath
+                    )
+                )
+            )
+        }
+}
 else {
-    // params.read_files = "ggal_*_1.fq"
-    params.read_files = "ggal_*_{1,2}.fq"
     Channel
-        .fromPath(params.read_files)
-        .set{rna_reads}
+        .fromPath(params.param_file)
+        .splitCsv(header:true)
+        .subscribe {row ->
+            file_tuple.add(new Tuple(
+                row.Sample_Name,
+                new Tuple(
+                    new File(row.Read).absolutePath
+                    )
+                )
+            )
+        }
     }
 
-rna_reads.into {single_reads; paired_reads}
 
-if (!params.paired)
-{
-    process output_single {
-        tag "$reads"
-        echo true
-        input:
-        file reads from single_reads
-        output:
-        file reads into op_reads
-        script:
-        """
-        echo $reads
-        """
-    }
-}
-
-
-if (params.paired)
-{
-    process output_paired {
-        echo true
-        tag "$site"
-        input:
-        set site, file(reads) from paired_reads
-        output:
-        file reads into op_reads
-        script:
-        """
-        """
-    }
-}
+Channel
+    .from(file_tuple)
+    // .subscribe{ println(it) }
+    // .flatMap { a,b,c -> [a, c]}
+    // .collate( 2 )
+    // .subscribe { println(it) }
+    .into {foo; bar}
 
 process tester {
     echo true
     tag "$site"
-    // publishDir "$site", mode: "copy"
+    publishDir "$site", mode: "copy"
     input:
-    set site, read1, read2 from bar
+    set site, reads from foo
     output:
     set site, "*.txt" into oop_reads
     script:
-    """
-    head -n 20 $read1 > head.txt
-    tail -n 20 $read2 > tail.txt
-    """
+    if (params.paired) {
+        """
+        echo ${reads[0]}
+        head -n 20 ${reads[0]} ${reads[1]}> paired_head.txt
+        tail -n 20 ${reads[0]} ${reads[1]}> paired_tail.txt
+        """
+    }
+    else {
+        """
+        echo ${reads[0]}
+        head -n 20 ${reads[0]} > single_head.txt
+        tail -n 20 ${reads[0]} > single_tail.txt
+        """
+    }
 }
 
 process makeafolder {
@@ -103,12 +77,13 @@ process makeafolder {
     tag "$site"
     publishDir "$site", mode: "copy"
     input:
-    set site, file (reads:'*') from oop_reads
-    // output:
-    // set site, "*.txt" into temp_reads
+    set site, file (ht_file:'*') from oop_reads
+    output:
+    set site, "*.txt" into temp_reads
     script:
+    def temp_list = [1,2,3]
     """
-    cat $reads
+    echo $ht_file > temp.txt
     echo $site
     """
 }
