@@ -4,25 +4,33 @@
 version = 0.1
 
 params.param_file = "params.txt"
-def file_pairs = []
+def samples = []
+def file_names = []
 Channel
     .fromPath(params.param_file)
     .splitCsv(header:true)
-    .subscribe {row ->
-        file_pairs.add(new Tuple(
-            row.Sample_Name,
-            new File(row.Read1).absolutePath,
-            new File(row.Read2).absolutePath
-            )
-        )
-    }
+    .subscribe {row -> file_names.add(new File(row.FastQ_files).absolutePath); samples.add(row.sample_name)}
+
+def sample_files = []
+for(i=0;i<file_names.size;i++) {sample_files.add([samples[i],file_names[i]])}
+def sample_map = sample_files.groupBy {it[0]}
+                             .collectEntries { key, value ->
+                                 new Tuple( key, value*.getAt(1) ) }
+def file_pairs = []
+for(i in sample_map) {
+    file_pairs.add(new Tuple(i.key, i.value[0], i.value[1]))
+    // file_pairs.add(new Tuple(i.key, i.value))
+}
+// sample_map.each{ key, values -> file_pairs.add(new Tuple(key, values)) }
+
+// file_pairs.each { elem -> println(elem[1].absolutePath) }
 
 Channel
     .from(file_pairs)
     // .subscribe{ println(it) }
-    // .flatMap { a,b,c -> [a, c]}
-    // .collate( 2 )
-    // .subscribe { println(it) }
+    .flatMap { a,b,c -> [a, c]}
+    .collate( 2 )
+    .subscribe { println(it) }
     .into {foo; bar}
 
 params.paired = true
@@ -80,8 +88,7 @@ process tester {
     tag "$site"
     // publishDir "$site", mode: "copy"
     input:
-    // set site, file(reads:'*') from bar
-    set site, read1, read2 from foo
+    set site, read1, read2 from bar
     output:
     set site, "*.txt" into oop_reads
     script:
@@ -97,11 +104,11 @@ process makeafolder {
     publishDir "$site", mode: "copy"
     input:
     set site, file (reads:'*') from oop_reads
-    output:
-    set site, "*.txt" into temp_reads
+    // output:
+    // set site, "*.txt" into temp_reads
     script:
     """
-    echo $reads > temp.txt
+    cat $reads
     echo $site
     """
 }
