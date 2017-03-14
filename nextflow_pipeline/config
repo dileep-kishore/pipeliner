@@ -17,6 +17,7 @@ params {
     	gtf   ='/restricted/projectnb/pulmseq/kkarri_netflow_test/genome/genome.bed.gff'
     	reads = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/ggal/merge/ggal_*_{1,2}.fq'
       sample_reads_file = ''
+      paired = true
     	//star = '/restricted/projectnb/pulmseq/kkarri_netflow_test/ggal_results_new_6/reference_genome'
     	outdir = '/restricted/projectnb/pulmseq/kkarri_netflow_test/ggal_results_new_7'
     	project = 'pulmseq'
@@ -29,6 +30,7 @@ params {
       gtf   ='/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human/genes.gtf'
       reads = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human_data/*{1_10000,2_10000}.fastq.gz'
       sample_reads_file = ''
+      paired = true
       star = '/restricted/projectnb/pulmseq/kkarri_netflow_test/'
       outdir = '/restricted/projectnb/pulmseq/kkarri_netflow_test/results_new_human_2'
       project = 'pulmseq'
