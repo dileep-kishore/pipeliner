@@ -239,12 +239,12 @@ process fastqc {
     script:
     if (params.paired) {
         """
-        /restricted/projectnb/pulmseq/kkarri_netflow_test/FastQC/fastqc -q ${reads[0]} ${reads[1]}
+        /restricted/projectnb/pulmseq/kkarri_netflow_test/FastQC/fastqc -o . -q ${reads[0]} ${reads[1]}
         """
     }
     else {
         """
-        /restricted/projectnb/pulmseq/kkarri_netflow_test/FastQC/fastqc -q ${reads[0]}
+        /restricted/projectnb/pulmseq/kkarri_netflow_test/FastQC/fastqc -o . -q ${reads[0]}
         """
     }
 }
