@@ -1,0 +1,55 @@
+/*
+vim: syntax=groovy
+-*- mode: groovy;-*-
+ * -------------------------------------------------
+ *  Nextflow config file
+ * -------------------------------------------------
+ * Defines reference genomes,parameters and process
+ *
+*/
+
+
+
+params
+{
+  genomes
+    {
+    'ggal'
+        {
+
+        fasta = '/restricted/projectnb/pulmseq/kkarri_netflow_test/genome/genome.index.fa'
+        gtf   ='/restricted/projectnb/pulmseq/kkarri_netflow_test/genome/genome.bed.gff'
+        sample_reads_file = '/restricted/projectnb/pulmseq/kkarri_netflow_test/test_star/ggal_test.csv'
+        paired = true
+    	star = '/restricted/projectnb/pulmseq/kkarri_netflow_test/test_star/ggal_results_test_2/reference_genome/star/star' 
+//		kallistoindex = '/restricted/projectnb/pulmseq/kkarri_netflow_test/reference_genome/kallisto/transcriptome.index'
+        outdir = '/restricted/projectnb/pulmseq/kkarri_netflow_test/test_star/ggal_results_test_3'
+        project = 'pulmseq'
+        transcriptome= '/restricted/projectnb/pulmseq/kkarri_netflow_test/transcriptome/ggal/Ggal_Transcriptome.fa'
+//     	bowtie = '/restricted/projectnb/pulmseq/kkarri_netflow_test/reference_genome/bowtie'
+        aligner = 'star'
+        bed = '/restricted/projectnb/pulmseq/kkarri_netflow_test/bed/ggal/ggal.bed'
+        refgenome ='/restricted/projectnb/pulmseq/kkarri_netflow_test/test_star/ref_test/star'
+        email = 'kritikakarri@gmail.com'
+        }
+     'human'
+        {
+	fasta = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human/genome.fa'
+        gtf   ='/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human/genes.gtf'
+
+        sample_reads_file = '/restricted/projectnb/pulmseq/kkarri_netflow_test/test_star/sample.csv'
+        paired = true
+ //       star = '/restricted/projectnb/pulmseq/kkarri_netflow_test/test_star/reference_genome'
+//              kallistoindex = '/restricted/projectnb/pulmseq/kkarri_netflow_test/reference_genome/kallisto/transcriptome.index'
+        outdir = '/restricted/projectnb/pulmseq/kkarri_netflow_test/Human_TestRun_Results'
+        project = 'pulmseq'
+        transcriptome= '/restricted/projectnb/pulmseq/kkarri_netflow_test/transcriptome/human/Human_Transcriptome.fa'
+  //    bowtie = '/restricted/projectnb/pulmseq/kkarri_netflow_test/reference_genome'
+        aligner = 'star'
+        bed = '/restricted/projectnb/pulmseq/kkarri_netflow_test/bed/human/hg19_GENCODE_GENE_V19_comprehensive.bed'
+        refgenome ='/restricted/projectnb/pulmseq/kkarri_netflow_test/reference_genome/star/human'
+        email = 'kritikakarri@gmail.com'
+        }
+
+     }
+}
