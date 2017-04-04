@@ -1,0 +1,59 @@
+==========================================================
+Starting on       : Mon Apr  3 13:33:37 EDT 2017
+Running on node   : scc-cb2
+Current job ID    : 8328701
+Current job name  : human_5_sample_run_3
+Task index number : 
+==========================================================
+Running nextflow
+N E X T F L O W  ~  version 0.23.4
+Launching `/restricted/projectnb/pulmseq/kkarri_netflow_test/test_star/star_pipeline_1.0_412017_bamstats.nf` [small_yonath] - revision: 802252bb1c
+ PIPELINER RNAseq Pipeline v0.9
+====================================
+Project       : pulmseq
+Reads         : null
+Genome        : human
+FASTA         : /restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human/genome.fa
+Transcriptome : /restricted/projectnb/pulmseq/kkarri_netflow_test/transcriptome/human/Human_Transcriptome.fa
+Annotation    : /restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human/genes.gtf
+Output dir    : /restricted/projectnb/pulmseq/kkarri_netflow_test/test_star/Human_Test_Results_Run3_5sample
+Aligner        : STAR
+STAR Index: /restricted/projectnb/pulmseq/kkarri_netflow_test/test_star/Human_TestRun_Results/reference_genome/star
+Current home  : /usr4/spclpgm/kkarri
+Current user  : kkarri
+Current path  : /restricted/projectnb/pulmseq/kkarri_netflow_test/test_star
+====================================
+[warm up] executor > sge
+pairedend
+pairedend
+pairedend
+pairedend
+pairedend
+[e2/3a72da] Submitted process > trim_galore (467-MR49_ACAGTG_L005)
+[69/a639c4] Submitted process > trim_galore (496-MR151_GTGAAA_L004)
+[e4/48c69e] Submitted process > fastqc (429-MR43_GTGAAA_L007)
+[61/b6603d] Submitted process > trim_galore (429-MR43_GTGAAA_L007)
+[61/0e3131] Submitted process > fastqc (467-MR49_ACAGTG_L005)
+[5a/a1de44] Submitted process > trim_galore (417-MR40_GTGAAA_L006)
+[9c/4736b2] Submitted process > fastqc (480-MR144_GCCAAT_L003)
+[a2/628b80] Submitted process > trim_galore (480-MR144_GCCAAT_L003)
+[84/2e7a26] Submitted process > fastqc (496-MR151_GTGAAA_L004)
+[dc/f32af1] Submitted process > fastqc (417-MR40_GTGAAA_L006)
+[1b/ccab60] Submitted process > star (467-MR49_ACAGTG_L005)
+[26/5fe07d] Submitted process > star (417-MR40_GTGAAA_L006)
+[47/d390a7] Submitted process > star (496-MR151_GTGAAA_L004)
+[c7/a1930c] Submitted process > star (480-MR144_GCCAAT_L003)
+[d9/e1421c] Submitted process > star (429-MR43_GTGAAA_L007)
+[dd/6185d3] Submitted process > stringtieFPKM (417-MR40_GTGAAA_L006)
+[08/4036fb] Submitted process > rseqc (417-MR40_GTGAAA_L006)
+[1c/d86bc6] Submitted process > stringtieFPKM (467-MR49_ACAGTG_L005)
+[e4/7cff64] Submitted process > rseqc (467-MR49_ACAGTG_L005)
+[7e/604c3e] Submitted process > stringtieFPKM (480-MR144_GCCAAT_L003)
+[fa/9349ac] Submitted process > rseqc (480-MR144_GCCAAT_L003)
+[73/43fbdf] Submitted process > stringtieFPKM (496-MR151_GTGAAA_L004)
+[51/b3c64b] Submitted process > rseqc (496-MR151_GTGAAA_L004)
+[1c/1ecfbe] Submitted process > stringtieFPKM (429-MR43_GTGAAA_L007)
+[b6/c67758] Submitted process > rseqc (429-MR43_GTGAAA_L007)
+[d1/0580ff] Submitted process > multiqc (1)
+CONGRATULATIONS !!!!! Your pipeline executed successfully :) !!
+Finished  .............. Mon Apr  3 20:11:30 EDT 2017
