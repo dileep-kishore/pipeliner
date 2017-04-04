@@ -16,8 +16,8 @@ if (params.paired) {
             file_tuple.add(new Tuple(
                 row.Sample_Name,
                 new Tuple(
-                    new File(row.Read1).absolutePath,
-                    new File(row.Read2).absolutePath
+                    new File(row.Read1).path,
+                    new File(row.Read2).path
                     )
                 )
             )
@@ -30,13 +30,11 @@ else {
         .subscribe {row ->
             file_tuple.add(new Tuple(
                 row.Sample_Name,
-                new Tuple(
-                    new File(row.Read).absolutePath
-                    )
+                new Tuple( new File(row.Read).path )
                 )
             )
         }
-    }
+}
 
 
 Channel

@@ -1,0 +1,14 @@
+Parameter:	Value
+genomes:	[ggal:[fasta:ggal_fasta.fa, gtf:ggal_annot.gff, sample_reads_file:paired_params.csv, paired:true, outdir:output, project:pulmseq, bowtie:/restricted/projectnb/pulmseq/kkarri_netflow_test/, aligner:star, email:kritikakarri@gmail.com], human:[fasta:/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human/genome.fa, gtf:/restricted/projectnb/pulmseq/kkarri_netflow_test/Data/human/genes.gtf, sample_reads_file:, paired:true, star:/restricted/projectnb/pulmseq/kkarri_netflow_test/, outdir:/restricted/projectnb/pulmseq/kkarri_netflow_test/results_new_human_2, project:pulmseq, bowtie:/restricted/projectnb/pulmseq/kkarri_netflow_test/, aligner:star, email:kritikakarri@gmail.com]]
+genome:	ggal
+fasta:	ggal_fasta.fa
+gtf:	ggal_annot.gff
+reads:	null
+reads_file:	paired_params.csv
+paired:	true
+outdir:	output
+starindex:	false
+bowtieindex:	/restricted/projectnb/pulmseq/kkarri_netflow_test/
+project:	pulmseq
+aligner:	star
+email:	kritikakarri@gmail.com

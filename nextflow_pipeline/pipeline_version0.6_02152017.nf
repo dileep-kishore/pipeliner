@@ -37,8 +37,8 @@ if (params.paired) {
             read_tuples.add(new Tuple(
                 row.Sample_Name,
                 new Tuple(
-                    new File(row.Read1).absolutePath,
-                    new File(row.Read2).absolutePath
+                    new File(row.Read1).path,
+                    new File(row.Read2).path
                     )
                 )
             )
@@ -52,7 +52,7 @@ else {
             read_tuples.add(new Tuple(
                 row.Sample_Name,
                 new Tuple(
-                    new File(row.Read).absolutePath
+                    new File(row.Read).path
                     )
                 )
             )
@@ -105,7 +105,7 @@ log.info "===================================="
 log.info "Project       : ${params.project}"
 log.info "Reads       : ${params.reads}"
 log.info "Genome      : ${params.genome}"
-log.info "FASTA	      : ${params.fasta}"
+log.info "FASTA		  : ${params.fasta}"
 log.info "Annotation   : ${params.gtf}"
 log.info "Output dir   : ${params.outdir}"
 if(params.aligner == 'star'){
@@ -263,7 +263,7 @@ process trim_galore {
     publishDir "${params.outdir}/$sampleid/trim_galore", mode: 'copy'
 
     input:
-	// set val(name),file(reads) from read_files_trimming
+    // set val(name),file(reads) from read_files_trimming
     set sampleid, reads from read_files_trimming
 
     output:
@@ -338,9 +338,6 @@ aligned
     .collate( 2 )
     .set { SPLIT_BAMS }
 SPLIT_BAMS.into { bam_count; bam_rseqc_bamstats; bam_rseqc_genecoverage; bam_rseqc_junc_annot; bam_preseq;  bam_stringtieFPKM }
-
-
-
 
 }
 
@@ -495,6 +492,7 @@ process multiqc {
         publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
+    // This might not need any input we do not want to run this multiple times
     file ('fastqc/*') from fastqc_results.flatten().toList()
     file ('trimgalore/*') from trimgalore_results.flatten().toList()
     file ('alignment/*') from alignment_logs.flatten().toList()
