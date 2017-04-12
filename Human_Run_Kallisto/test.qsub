@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+#$ -cwd
+#$ -j y
+#$ -P pulmseq
+#$ -m be
+#$ -M kkarri@bu.edu
+#$ -o human_5_sample_pcga_test_kallisto_run1.log
+#$ -N human_5_sample_run_kallisto_1
+
+
+# For running Human RNA seq  test samples using nextflow pipeline
+
+# Edit Notes:
+
+# Load modules
+source ~/.bashrc
+module load star/2.4.2a
+module load kallisto/0.43.0
+
+
+echo "=========================================================="
+echo "Starting on       : $(date)"
+echo "Running on node   : $(hostname)"
+echo "Current job ID    : $JOB_ID"
+echo "Current job name  : $JOB_NAME"
+echo "Task index number : $TASK_ID"
+echo "=========================================================="
+
+echo "Running nextflow"
+
+/restricted/projectnb/pulmseq/kkarri_netflow_test/nextflow /restricted/projectnb/pulmseq/kkarri_netflow_test/test_kallisto/kallisto_pipeline_1.0_462017.nf -c /restricted/projectnb/pulmseq/kkarri_netflow_test/test_kallisto/confighuman  -with-timeline human_kallisto_timeline.txt -with-dag humandag_kallistoflowchart.png -with-trace 
+echo "Finished  .............. $(date)"
+
