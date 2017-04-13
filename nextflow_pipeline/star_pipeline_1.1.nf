@@ -30,36 +30,20 @@ params.bed = params.genome ? params.genomes[ params.genome ].bed ?: false : fals
 params.saveReference = true
 
 // Read and Map reads with samples using csv file
-
-def read_tuples = []
 if (params.paired) {
     Channel
         .fromPath(params.reads_file)
-        .splitCsv(header:true)
-        .subscribe {row ->
-            read_tuples.add(new Tuple(
-                row.Sample_Name,
-                new Tuple(
-                    row.Read1,
-                    row.Read2
-                    )
-                )
-            )
-        }
-}
-else {
+        .splitCsv(header: true)
+        .map {row -> [row.Sample_Name, [row.Read1, row.Read2]]}
+        .ifEmpty { error "File ${params.reads_file} not parsed properly" }
+        .into {read_files_fastqc; read_files_trimming}
+} else {
     Channel
         .fromPath(params.reads_file)
-        .splitCsv(header:true)
-        .subscribe {row ->
-            read_tuples.add(new Tuple(
-                row.Sample_Name,
-                new Tuple(
-                    row.Read
-                    )
-                )
-            )
-        }
+        .splitCsv(header: true)
+        .map {row -> [row.Sample_Name, [row.Read]]}
+        .ifEmpty { error "File ${params.reads_file} not parsed properly" }
+        .into {read_files_fastqc; read_files_trimming}
 }
 
 
@@ -175,11 +159,6 @@ log.info "Current path  : $PWD"
 log.info "===================================="
 
 
-Channel
-    .from(read_tuples)
-    .ifEmpty { error "File ${params.reads_file} not parsed properly" }
-    .into { read_files_fastqc; read_files_trimming }
-
 
 /* PREPROCESSING - Build STAR index */
 
@@ -244,7 +223,6 @@ process fastqc {
 	    	publishDir "${params.outdir}/$sampleid/fastqc", mode: 'copy'
 		  executor = 'sge'
   		clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
-	
 
    		input:
     		set sampleid, reads from read_files_fastqc
@@ -255,16 +233,13 @@ process fastqc {
     		script:
     		if (params.paired) 
 		{
-        
 			"""
         		/restricted/projectnb/pulmseq/kkarri_netflow_test/FastQC/fastqc -o . -q ${reads[0]} ${reads[1]}
 
         		"""
     		}
-    	
-		else 
+		else
 		{
-        
 			"""
         		/restricted/projectnb/pulmseq/kkarri_netflow_test/FastQC/fastqc -o . -q ${reads[0]}
         		"""
@@ -282,7 +257,6 @@ process trim_galore {
 	  executor = 'sge'
   	clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
 
-	
 	publishDir "${params.outdir}/$sampleid/trim_galore", mode: 'copy'
 
     	input:
@@ -293,26 +267,22 @@ process trim_galore {
     	set sampleid, '*trimming_report.txt' into trimgalore_results
 
     	script:
-    	if(params.paired) 
+    	if(params.paired)
 		{
-        
 			println("pairedend")
-        	
 			"""
         		module load python2.7/Python-2.7.3_gnu446
         		module load cutadapt/1.7.1_Python-2.7.3
         		/restricted/projectnb/pulmseq/kkarri_netflow_test/trim_galore --paired --gzip ${reads[0]} ${reads[1]}
         		"""
-    		} 
-	else 
-		{
-        		println("singleend")
-        		"""
-        		/* module load python2.7/Python-2.7.3_gnu446*/
-        		/* module load cutadapt/1.7.1_Python-2.7.3*/
-        		/restricted/projectnb/pulmseq/kkarri_netflow_test/trim_galore --gzip ${reads[0]}
-        		"""
-    		}
+    	} else {
+     		println("singleend")
+     		"""
+     		/* module load python2.7/Python-2.7.3_gnu446*/
+     		/* module load cutadapt/1.7.1_Python-2.7.3*/
+     		/restricted/projectnb/pulmseq/kkarri_netflow_test/trim_galore --gzip ${reads[0]}
+     		"""
+    	}
 	}
 
 
@@ -320,49 +290,42 @@ process trim_galore {
 
 if(params.aligner == 'star')
 {
-        process star {
-                  executor = 'sge'
-                clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+  process star {
+      executor = 'sge'
+       clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
 
 
-                tag "$sampleid"
-                cache 'deep'
-                publishDir "${params.outdir}/$sampleid/STAR", mode: 'copy'
+       tag "$sampleid"
+       cache 'deep'
+       publishDir "${params.outdir}/$sampleid/STAR", mode: 'copy'
 
-                input:
-                file index from starindex.first()
-                file gtf from gtf_star.first()
-                set sampleid, file (reads:'*') from trimmed_reads
+       input:
+       file index from starindex.first()
+       file gtf from gtf_star.first()
+       set sampleid, file (reads:'*') from trimmed_reads
 
-                output:
-                 set sampleid,file("${sampleid}*.bam") into  bam_files
-		 set sampleid,file("${sampleid}*.bam") into  bam_count
-                 set sampleid,file("${sampleid}*.bam") into bam_rseqc_junc_annot
-		 set sampleid,file("${sampleid}*.bam")  into bam_stringtieFPKM
-	 	 set sampleid,file("${sampleid}*.bam") into bam_rseqc_genecoverage
-		 set sampleid,file("${sampleid}*.bam")  into bam_rseqc_bamstats
+       output:
+        set sampleid, file("${sampleid}*.bam") into  bam_files, bam_count, bam_stringtieFPKM1, bam_stringtieFPKM2, bam_rseqc
+       set sampleid, '*.out' into alignment_logs
+       set sampleid, '*SJ.out.tab' into alignment_tab
 
-                set sampleid, '*.out' into alignment_logs
-                set sampleid, '*SJ.out.tab' into alignment_tab
+       script:
+       """
+       module load star/2.4.2a
+      f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed};f=\${f%_1};f=\${f%_R1};f=\${f%_R1_001}
+       prefix=\$f
 
-                script:
-                """
-                module load star/2.4.2a
-               f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed};f=\${f%_1};f=\${f%_R1};f=\${f%_R1_001}
-                prefix=\$f
- 
 		STAR --genomeDir $index \\
-                --sjdbGTFfile $gtf \\
-                --readFilesIn $reads  \\
-                --runThreadN ${task.cpus} \\
-                --twopassMode Basic \\
-                --outWigType bedGraph \\
-                --outSAMtype BAM SortedByCoordinate \\
-                --readFilesCommand zcat \\
-                --outFileNamePrefix \$prefix
-
- 		"""
-                }
+          --sjdbGTFfile $gtf \\
+          --readFilesIn $reads  \\
+          --runThreadN ${task.cpus} \\
+          --twopassMode Basic \\
+          --outWigType bedGraph \\
+          --outSAMtype BAM SortedByCoordinate \\
+          --readFilesCommand zcat \\
+          --outFileNamePrefix \$prefix
+         """
+   }
 
 
 
@@ -390,66 +353,107 @@ process rseqc{
     publishDir "${params.outdir}/$sampleid/rseqc", mode: 'copy'
 
     input:
-    set sampleid,file(bamfiles)from bam_rseqc_bamstats
-    set sampleid,file(bamfiles2) from bam_rseqc_junc_annot
-    set sampleid,file(bamfiles3) from bam_rseqc_genecoverage
+    set sampleid,file(bamfiles)from bam_rseqc
+    set sampleid,file(baifiles)from bai_files
     file bed from bed
-	
+
     output:
 	file ("*.{txt,pdf,r,xls}") into rseqc_results
-    
+
    file('*info.txt') into bam_stats_results
    file ('gene_coverage*') into gene_coverage_results
     stdout into gene_coverage_log
     file ('junc_annot*') into junction_annotation_results
-    file('junc_annot.junction.xls') into junction 
+    file('junc_annot.junction.xls') into junction
    file('gene_coverage.geneBodyCoverage.txt') into coverage
     script:
     """
     module load python
     module load rseqc/2.6.4
+    module load samtools
+    samtools index $bam_files
     bam_stat.py -i $bamfiles > bam_stats_info.txt
-    geneBody_coverage.py -r $bed -i $bamfiles3 -o gene_coverage
-    junction_annotation.py -i $bamfiles2 -o junc_annot -r $bed
+    geneBody_coverage.py -r $bed -i $bamfiles -o gene_body_coverage
+    junction_annotation.py -i $bamfiles -o junction_annotation -r $bed
 
     """
 }
 
 
 /*
-* stringtie FPKM 
+* stringtie FPKM
 */
 
 if(params.aligner == "star" | params.aligner == "bowtie")
 
 {
-process stringtieFPKM {
+process stringtieFPKM1 {
     tag "$sampleid"
+    executor = 'sge'
+    clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+   //  publishDir "${params.outdir}/${sampleid}/stringtieFPKM", mode: 'copy'
 
-       executor = 'sge'
-       clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+    input:
+    set sampleid, file(bamfiles) from bam_stringtieFPKM1
+    file gtf from gtf
 
+    output:
+    file '*_transcripts.gtf' into gtf_list
 
+    script:
+    """
+    module load stringtie/1.3.1
+    /restricted/projectnb/pulmseq/kkarri_netflow_test/stringtie/stringtie $bamfiles \\
+        -o ${bamfiles}_transcripts.gtf \\
+        -v \\
+        -G $gtf \\
+	 echo "File name: $bamfiles Stringtie version "\$(stringtie --version)
+    """
+   }
+}
 
+// Needs to put inside the STRINGTIE condition
+process merge{
+    executor = 'sge'
+    clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+
+    publishDir "${params.outdir}/stringtiemerge", mode: 'copy'
+
+    input:
+    val gtf_list from gtf_list.collect()
+    file gtf from gtf
+
+	output:
+      file 'merged_gtf.gtf' into merged_gtf
+
+	script:
+   String gtf_string = gtf_list .flatten() .join(' ')
+	"""
+	 /restricted/projectnb/pulmseq/kkarri_netflow_test/stringtie/stringtie --merge $gtf_string -G $gtf -e -F -T -o merged_gtf.gtf
+	"""
+}
+
+// Repeat STRINGTIE again here
+process stringtieFPKM2 {
+    tag "$sampleid"
+    executor = 'sge'
+    clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
     publishDir "${params.outdir}/${sampleid}/stringtieFPKM", mode: 'copy'
 
     input:
-    set sampleid,file(bamfiles) from bam_stringtieFPKM
-    file gtf from gtf
-
-
+    set sampleid, file(bamfiles) from bam_stringtieFPKM2
+    file gtf from merged_gtf
 
     output:
-    file '*_transcripts.gtf' into tmerge
-    file '*.gene_abund.txt'
+    file '*_transcripts.gtf' into gtf_list
+    file '*.gene_abund.txt' into gene_abund
     file '*.cov_refs.gtf'
     stdout into stringtie_log
 
     script:
-
     """
     module load stringtie/1.3.1
-   /restricted/projectnb/pulmseq/kkarri_netflow_test/stringtie/stringtie $bamfiles \\
+    /restricted/projectnb/pulmseq/kkarri_netflow_test/stringtie/stringtie $bamfiles \\
         -o ${bamfiles}_transcripts.gtf \\
         -v \\
         -G $gtf \\
@@ -459,40 +463,27 @@ process stringtieFPKM {
         -b ${bamfiles}_ballgown
 	 echo "File name: $bamfiles Stringtie version "\$(stringtie --version)
     """
-        }
+   }
+// Make gene count and transcript count matrix
+process aggregate_counts {
+   executor = 'sge'
+   clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+   publishDir "${params.outdir}/counts", mode: "copy"
 
+   input:
+   val abund_file_list from gene_abund.collect()
+
+   output:
+   file "fpkm.csv" as fpkm_counts
+   file "tpm.csv" as tpm_counts
+
+   script:
+   String file_list = abund_file_list .flatten() .join(' ')
+   """
+   aggregate_counts.py $file_list
+   """
 }
 
-
-
-
-
-process merge{
-	tag "$sampleid"
-
-       executor = 'sge'
-       clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
-
-
-
-    publishDir "${params.outdir}/stringtiemerge", mode: 'copy'
-
-    input:
-    file list from tmerge.collect()
-    file gtf from gtf
-
-	output:
-      file 'merged.txt' into outmerge
-
-	script:
-	"""
-	cat $list >gtf.list
-	 /restricted/projectnb/pulmseq/kkarri_netflow_test/stringtie/stringtie  --merge gtf.list -G $gtf -e -F -T -o $outmerge
-
-
-	"""
-
-}
 /*
  * STEP 11 MultiQC
  */
@@ -509,10 +500,11 @@ process multiqc {
                 file ('trimgalore/*') from trimgalore_results.flatten().toList()
                 file ('alignment/*') from alignment_logs.flatten().toList()
                 file ('stringtie/*') from stringtie_log.flatten().toList()
-	//	file ('rseqc/*') from rseqc_results.collect()
-		file ('rseqc/*') from coverage.flatten().toList()
-		file ('rseqc/*') from junction.flatten().toList()
-	
+                file('counts/*') from fpkm_counts.flatten().toList()
+            	//	file ('rseqc/*') from rseqc_results.collect()
+         		file ('rseqc/*') from coverage.flatten().toList()
+         		file ('rseqc/*') from junction.flatten().toList()
+
                 output:
                 file "*multiqc_report.html"
                 file "*multiqc_data"
