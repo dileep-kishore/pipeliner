@@ -3,62 +3,39 @@
 
 version = 0.2
 
-params.paired = false
-params.param_file = "single_params.csv"
-test_file = file("test.sh");
+params.paired = true
+params.param_file = file('paired_params.csv')
+test_file = file('test.sh');
 
-def file_tuple = []
 if (params.paired) {
     Channel
         .fromPath(params.param_file)
-        .splitCsv(header:true)
-        .subscribe {row ->
-            file_tuple.add(new Tuple(
-                row.Sample_Name,
-                new Tuple(
-                    new File(row.Read1).path,
-                    new File(row.Read2).path
-                    )
-                )
-            )
-        }
-}
-else {
+        .splitCsv(header: true)
+        .map {row -> [row.Sample_Name, [row.Read1, row.Read2]]}
+        .into {foo; bar}
+} else {
     Channel
         .fromPath(params.param_file)
-        .splitCsv(header:true)
-        .subscribe {row ->
-            file_tuple.add(new Tuple(
-                row.Sample_Name,
-                new Tuple( new File(row.Read).path )
-                )
-            )
-        }
+        .splitCsv(header: true)
+        .map {row -> [row.Sample_Name, [row.Read]]}
+        .into {foo; bar}
 }
-
-
-Channel
-    .from(file_tuple)
-    // .subscribe{ println(it) }
-    // .flatMap { a,b,c -> [a, c]}
-    // .collate( 2 )
-    // .subscribe { println(it) }
-    .into {foo; bar}
 
 process tester {
     echo true
     tag "$site"
     publishDir "$site", mode: "copy"
     input:
-    set site, reads from foo
+    set val(site), reads from foo
     output:
-    set site, "*.txt" into oop_reads
+    set site, "*.txt" into other_reads
+    file "*.txt" into oop_reads
     script:
     if (params.paired) {
         """
         echo ${reads[0]}
-        head -n 20 ${reads[0]} ${reads[1]}> paired_head.txt
-        tail -n 20 ${reads[0]} ${reads[1]}> paired_tail.txt
+        head -n 20 ${reads[0]} ${reads[1]}> ${site}_paired_head.txt
+        tail -n 20 ${reads[0]} ${reads[1]}> ${site}_paired_tail.txt
         """
     }
     else {
@@ -70,19 +47,30 @@ process tester {
     }
 }
 
+// oop_reads
+//     .flatten()
+//     .map {f -> f.path}
+//     .collectFile(name:'dragon1.txt', newLine:true)
+//     .into {sample_results}
+
 process makeafolder {
     echo true
-    tag "$site"
-    publishDir "$site", mode: "copy"
+    publishDir "final", mode: "copy"
     input:
-    set site, file (ht_file:'*') from oop_reads
+    // set site, file (ht_file:'*') from oop_reads
+    // val temp_list from other_reads.collect {it[1]}
+    val temp_list from oop_reads.collect()
     output:
-    set site, "*.txt" into temp_reads
+    file "*.txt" into temp_reads
     script:
-    def temp_list = [1,2,3]
+    String temp_string = temp_list .flatten() .join(' ')
+    // String temp_list = temp
+    //                     .findAll {e -> e.class == ArrayList}
+    //                     .flatten()
+    //                     .join(' ')
     """
-    echo $ht_file > temp.txt
-    echo $site
+    echo $temp_string
+    cat $temp_string > dragon2.txt
     """
 }
 
