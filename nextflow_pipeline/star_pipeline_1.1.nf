@@ -372,9 +372,9 @@ process rseqc{
     module load rseqc/2.6.4
     module load samtools
     samtools index $bam_files
-    bam_stat.py -i $bamfiles > bam_stats_info.txt
-    geneBody_coverage.py -r $bed -i $bamfiles -o gene_body_coverage
-    junction_annotation.py -i $bamfiles -o junction_annotation -r $bed
+    bam_stat.py -i $bamfiles > ${sampleid}.bam_stats
+    geneBody_coverage.py -r $bed -i $bamfiles -o ${sampleid}
+    junction_annotation.py -i $bamfiles -o ${sampleid} -r $bed
 
     """
 }
@@ -410,9 +410,7 @@ process stringtieFPKM1 {
 	 echo "File name: $bamfiles Stringtie version "\$(stringtie --version)
     """
    }
-}
 
-// Needs to put inside the STRINGTIE condition
 process merge{
     executor = 'sge'
     clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
@@ -464,6 +462,7 @@ process stringtieFPKM2 {
 	 echo "File name: $bamfiles Stringtie version "\$(stringtie --version)
     """
    }
+
 // Make gene count and transcript count matrix
 process aggregate_counts {
    executor = 'sge'
@@ -483,6 +482,7 @@ process aggregate_counts {
    aggregate_counts.py $file_list
    """
 }
+}
 
 /*
  * STEP 11 MultiQC
@@ -490,32 +490,32 @@ process aggregate_counts {
 
 process multiqc {
 
-               executor = 'sge'
-        clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
+   executor = 'sge'
+   clusterOptions = "-P ${params.project} -l h_rt=96:00:00 -l mem_total=5G -pe omp 12"
 
-                publishDir "${params.outdir}/MultiQC", mode: 'copy'
+    publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
-                input:
-                file ('fastqc/*') from fastqc_results.flatten().toList()
-                file ('trimgalore/*') from trimgalore_results.flatten().toList()
-                file ('alignment/*') from alignment_logs.flatten().toList()
-                file ('stringtie/*') from stringtie_log.flatten().toList()
-                file('counts/*') from fpkm_counts.flatten().toList()
-            	//	file ('rseqc/*') from rseqc_results.collect()
-         		file ('rseqc/*') from coverage.flatten().toList()
-         		file ('rseqc/*') from junction.flatten().toList()
+    input:
+    file ('fastqc/*') from fastqc_results.flatten().toList()
+    file ('trimgalore/*') from trimgalore_results.flatten().toList()
+    file ('alignment/*') from alignment_logs.flatten().toList()
+    file ('stringtie/*') from stringtie_log.flatten().toList()
+    file('counts/*') from fpkm_counts.flatten().toList()
+   //	file ('rseqc/*') from rseqc_results.collect()
+   file ('rseqc/*') from coverage.flatten().toList()
+   file ('rseqc/*') from junction.flatten().toList()
+   file('counts/*') from fpkm_counts.flatten().toList()
 
-                output:
-                file "*multiqc_report.html"
-                file "*multiqc_data"
+    output:
+    file "*multiqc_report.html"
+    file "*multiqc_data"
 
-    // TODO: Multi-sample MultiQC (will it work if -f ${params.outdir})
-                script:
-                """
-                module load python/2.7.11
-                module load multiqc/0.9
-                multiqc -f ${params.outdir}
-                """
+    script:
+    """
+    module load python/2.7.11
+    module load multiqc/0.9
+    multiqc -f ${params.outdir}
+    """
         }
 
 
