@@ -23,6 +23,7 @@ if (params.paired) {
 
 process tester {
     echo true
+    cache 'deep'
     tag "$site"
     publishDir "$site", mode: "copy"
     input:
@@ -55,6 +56,7 @@ process tester {
 
 process makeafolder {
     echo true
+    cache 'deep'
     publishDir "final", mode: "copy"
     input:
     // set site, file (ht_file:'*') from oop_reads
