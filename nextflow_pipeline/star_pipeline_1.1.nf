@@ -357,24 +357,23 @@ process rseqc{
     file bed from bed
 
     output:
-	file ("*.{txt,pdf,r,xls}") into rseqc_results
+	 file ("*.{txt,pdf,r,xls}") into rseqc_results
 
    file('*info.txt') into bam_stats_results
    file ('gene_coverage*') into gene_coverage_results
     stdout into gene_coverage_log
     file ('junc_annot*') into junction_annotation_results
-    file('junc_annot.junction.xls') into junction
-   file('gene_coverage.geneBodyCoverage.txt') into coverage
+ //   file('junc_annot.junction.xls') into junction
+//   file('gene_coverage.geneBodyCoverage.txt') into coverage
     script:
     """
-    module load python
+    module load python/2.7.11
     module load rseqc/2.6.4
-    module load samtools
+    module load samtools/1.3
     samtools index $bamfiles
     bam_stat.py -i $bamfiles > ${sampleid}.bam_stats_info.txt
-    geneBody_coverage.py -r $bed -i $bamfiles -o ${sampleid}
-    junction_annotation.py -i $bamfiles -o ${sampleid} -r $bed
-
+    geneBody_coverage.py -r $bed -i $bamfiles -o gene_coverage_${sampleid}
+    junction_annotation.py -i $bamfiles -o junc_annot_${sampleid} -r $bed
     """
 }
 
@@ -442,7 +441,7 @@ process stringtieFPKM2 {
     file gtf from merged_gtf
 
     output:
-    file '*_transcripts.gtf' into gtf_list
+    file '*_transcripts.gtf' into gtf_list1
     file '*.gene_abund.txt' into gene_abund
     file '*.cov_refs.gtf'
     stdout into stringtie_log
@@ -501,9 +500,12 @@ process multiqc {
     file ('stringtie/*') from stringtie_log.flatten().toList()
     file('counts/*') from fpkm_counts.flatten().toList()
    //	file ('rseqc/*') from rseqc_results.collect()
-   file ('rseqc/*') from coverage.flatten().toList()
-   file ('rseqc/*') from junction.flatten().toList()
-   file('counts/*') from fpkm_counts.flatten().toList()
+   //file ('rseqc/*') from coverage.flatten().toList()
+   //file ('rseqc/*') from junction.flatten().toList()
+   file ('rseqc/*') from gene_coverage_results.flatten().toList()
+   file ('rseqc/*') from junction_annotation_results.flatten().toList()
+
+
 
     output:
     file "*multiqc_report.html"
