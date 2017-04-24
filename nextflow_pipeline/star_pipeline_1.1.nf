@@ -354,7 +354,6 @@ process rseqc{
 
     input:
     set sampleid,file(bamfiles)from bam_rseqc
-    set sampleid,file(baifiles)from bai_files
     file bed from bed
 
     output:
@@ -371,7 +370,7 @@ process rseqc{
     module load python
     module load rseqc/2.6.4
     module load samtools
-    samtools index $bam_files
+    samtools index $bamfiles
     bam_stat.py -i $bamfiles > ${sampleid}.bam_stats
     geneBody_coverage.py -r $bed -i $bamfiles -o ${sampleid}
     junction_annotation.py -i $bamfiles -o ${sampleid} -r $bed
@@ -407,7 +406,7 @@ process stringtieFPKM1 {
         -o ${bamfiles}_transcripts.gtf \\
         -v \\
         -G $gtf \\
-	 echo "File name: $bamfiles Stringtie version "\$(stringtie --version)
+	
     """
    }
 
