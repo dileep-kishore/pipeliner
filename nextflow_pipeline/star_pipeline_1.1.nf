@@ -371,7 +371,7 @@ process rseqc{
     module load rseqc/2.6.4
     module load samtools
     samtools index $bamfiles
-    bam_stat.py -i $bamfiles > ${sampleid}.bam_stats
+    bam_stat.py -i $bamfiles > ${sampleid}.bam_stats_info.txt
     geneBody_coverage.py -r $bed -i $bamfiles -o ${sampleid}
     junction_annotation.py -i $bamfiles -o ${sampleid} -r $bed
 
