@@ -21,9 +21,8 @@ Pipeliner requires Nextflow and Java 7 or greater for implementation. All other 
 
 *1. Download Nextflow*
 
-Make sure Java 7  or 7 is installed and install Nextflow in directory you plan to work in
+Make sure Java 7  or 7 is installed and install Nextflow in directory you plan to work in::
 
-..code:: bash
   java -version
   curl -fsSL get.nextflow.io | bash
 
@@ -31,9 +30,7 @@ Make sure Java 7  or 7 is installed and install Nextflow in directory you plan t
 
 `Conda` is available through 'Anaconda <https://www.continuum.io/downloads>`_ and  `Miniconda <http://conda.pydata.org/miniconda.html>`_.
 
-If you're using a module system such as on the shared computing cluster (SCC) at Boston University you can just load a preinstalled version:
-
-..code:: bash
+If you're using a module system such as on the shared computing cluster (SCC) at Boston University you can just load a preinstalled version::
 
    module purge
    module load anaconda2/4.3.0
@@ -70,7 +67,7 @@ Pipeliner consists of a main nextflow script parametrized using a configuration 
 
 Once the appropriate paths and tools have been set in the configuration file, you can run the pipeline with the configuration file::
 
-nextflow main.nf -c config
+  nextflow main.nf -c config
 
 
 
