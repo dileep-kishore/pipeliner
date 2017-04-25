@@ -359,10 +359,10 @@ process rseqc{
     output:
 	 file ("*.{txt,pdf,r,xls}") into rseqc_results
 
-   file('*info.txt') into bam_stats_results
-   file ('gene_coverage*') into gene_coverage_results
+   file('*.bam_stats') into bam_stats_results
+   file ('*geneBodyCoverage.*') into gene_coverage_results
     stdout into gene_coverage_log
-    file ('junc_annot*') into junction_annotation_results
+    file ('*junction.*') into junction_annotation_results
  //   file('junc_annot.junction.xls') into junction
 //   file('gene_coverage.geneBodyCoverage.txt') into coverage
     script:
@@ -371,9 +371,9 @@ process rseqc{
     module load rseqc/2.6.4
     module load samtools/1.3
     samtools index $bamfiles
-    bam_stat.py -i $bamfiles > ${sampleid}.bam_stats_info.txt
-    geneBody_coverage.py -r $bed -i $bamfiles -o gene_coverage_${sampleid}
-    junction_annotation.py -i $bamfiles -o junc_annot_${sampleid} -r $bed
+    bam_stat.py -i $bamfiles > ${sampleid}.bam_stats
+    geneBody_coverage.py -r $bed -i $bamfiles -o ${sampleid}
+    junction_annotation.py -i $bamfiles -o ${sampleid} -r $bed
     """
 }
 
@@ -416,14 +416,14 @@ process merge{
     publishDir "${params.outdir}/stringtiemerge", mode: 'copy'
 
     input:
-    val gtf_list from gtf_list.collect()
+    val gtfs from gtf_list.collect()
     file gtf from gtf
 
 	output:
       file 'merged_gtf.gtf' into merged_gtf
 
 	script:
-   String gtf_string = gtf_list .flatten() .join(' ')
+   String gtf_string = gtfs .flatten() .join(' ')
 	"""
 	 /restricted/projectnb/pulmseq/kkarri_netflow_test/stringtie/stringtie --merge $gtf_string -G $gtf -e -F -T -o merged_gtf.gtf
 	"""
@@ -438,10 +438,10 @@ process stringtieFPKM2 {
 
     input:
     set sampleid, file(bamfiles) from bam_stringtieFPKM2
-    file gtf from merged_gtf
+    file mergedgtf from merged_gtf
 
     output:
-    file '*_transcripts.gtf' into gtf_list1
+    file '*_transcripts.gtf' into final_gtf_list
     file '*.gene_abund.txt' into gene_abund
     file '*.cov_refs.gtf'
     stdout into stringtie_log
@@ -452,7 +452,7 @@ process stringtieFPKM2 {
     /restricted/projectnb/pulmseq/kkarri_netflow_test/stringtie/stringtie $bamfiles \\
         -o ${bamfiles}_transcripts.gtf \\
         -v \\
-        -G $gtf \\
+        -G $mergedgtf \\
         -A ${bamfiles}.gene_abund.txt \\
         -C ${bamfiles}.cov_refs.gtf \\
         -e \\
