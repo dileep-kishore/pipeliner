@@ -20,8 +20,9 @@ def writefiles(counts, fname):
     with open('{0}.csv'.format(fname), 'w') as counts_file:
         genes = set(counts.keys())
         samples = set(j for i in counts.values() for j in i.keys())
+        sample_names = [j.rsplit('/')[-1] for j in samples]
         w = csv.writer(counts_file)
-        w.writerow(["gene_id"] + list(samples))
+        w.writerow(["gene_id"] + sample_names)
         for gid in genes:
             row_item = [gid]
             for sid in samples:
