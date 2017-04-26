@@ -62,7 +62,7 @@ OR::
 
   source activate ./rna_env
   
-Pipeliner consists of a main nextflow script parametrized using a configuration file. The configuration file includes all parameters necessary to run the pipeline including  parameters to direct the path of files and results, as well as selecting specific tools and processes to run. The example gallus gallus (chicken) dataset is all within the ggal folder. All files necessary to run this example is in the folder "Gallus_Example".
+Pipeliner consists of a main nextflow script parametrized using a configuration file. The configuration file includes all parameters necessary to run the pipeline including  parameters to direct the path of files and results, as well as selecting specific tools and processes to run. The example *Gallus gallus* (chicken) dataset is all within the ggal folder. All files necessary to run this example is in the folder "Gallus_Example".
 
 
 Once the appropriate paths and tools have been set in the configuration file, you can run the pipeline with the configuration file::
