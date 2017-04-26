@@ -28,7 +28,7 @@ Make sure Java 7  or 7 is installed and install Nextflow in directory you plan t
 
 *2. Download Conda*
 
-`Conda` is available through 'Anaconda <https://www.continuum.io/downloads>` and  `Miniconda <http://conda.pydata.org/miniconda.html>`_.
+`Conda` is available through `Anaconda <https://www.continuum.io/downloads>` and  `Miniconda <http://conda.pydata.org/miniconda.html>`_.
 
 If you're using a module system such as on the shared computing cluster (SCC) at Boston University you can just load a preinstalled version::
 
@@ -77,5 +77,5 @@ Once you have resolved the issue, the pipeline can be resumed using the same com
 
   nexflow main.nf -c ./Gallus_Example/config_ggal -resume 
 
-For more information, you can look at the manual. 
+For more information, check out the manual provided.. 
 
