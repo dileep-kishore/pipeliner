@@ -69,6 +69,13 @@ Once the appropriate paths and tools have been set in the configuration file, yo
 
   nextflow main.nf -c config
 
+If an issue arises and pipline stops running, you can check the nextflow log file that is created during each run to determine the problem. Note: A new log file is created after each run and the most recent log file is not numbered::
+
+  vim .nextflow.log #recent log file
+
+Once you have resolved the issue, the pipeline can be resumed using the same command to run the pipeline with '-resume' argument::
+
+  nexflow main.nf -c ./Gallus_Example/config_ggal -resume 
 
 
 
