@@ -1,0 +1,35 @@
+/
+vim: syntax=groovy
+-*- mode: groovy;-*-
+ * -------------------------------------------------
+ *  Nextflow config file
+ * -------------------------------------------------
+ * Defines reference genomes,parameters and process
+ *
+*/
+
+
+params #set parameters
+{
+  genomes #set paths and specific conditions to run the pipeline
+    {
+    'ggal'
+        {
+
+        fasta = '~/Ggal_Example/ggal/genome.index.fa' #path to index file
+        gtf   ='~/Ggal_Example/ggal/genome.bed.gff'   #path to gtf file
+        sample_reads_file = '~/Ggal_Example/ggal_alpha.csv' #set path to sample reads file
+        paired = true #Specifies if data is paired-end
+//     	star = '~/star/ref_test/star' #path to reference file
+//	kallistoindex = '~/kallisto/transcriptome.index' #path to kallisto reference file
+        outdir = '~/results/ggal_results_test' #set path for results
+        project = 'pulmseq' #if working in a shared computing cluster, state project you are working in
+        transcriptome= '~/Ggal_Example/ggal/Ggal_Transcriptome.fa' #path to transcriptome file 
+//     	bowtie = '/reference_genome/bowtie' #path to bowtie reference 
+        aligner = 'star' #set aligner option (i.e. in this case STAR)
+        bed = '~/Ggal_Example/ggal/ggal_refseq.bed' #path to ggal bed file
+//      refgenome ='star/ref_test/star' #path to reference genome for star
+        email = 'user@email.com' #set email address for notifications and report
+        }
+    }
+}
