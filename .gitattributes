@@ -1,0 +1,3 @@
+*.nf linguist-language=Groovy
+*.html linguist-generated
+*.ipynb linguist-documentation
